@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Cache Control Meta Tags -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+
+    <title>Redirecting...</title>
+
+    <style>
+        body {
+            background-color: #fffafa;
+            color: #4a4a4a;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .redirect-card {
+            background: #ffffff;
+            border: 1px solid #ffe4e9;
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            box-shadow: 0 15px 35px rgba(255, 133, 162, 0.15);
+        }
+
+        .redirect-card h2 {
+            color: #ff85a2;
+            margin-bottom: 10px;
+        }
+
+        .redirect-card p {
+            color: #d1a7b0;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="redirect-card">
+        <h2>Launching Flair's Dressroom...</h2>
+        <p id="status-msg">Checking credentials...</p>
+    </div>
+
+    <script>
+        // Target project base URL
+        const TARGET_URL = "https://flairdiva.github.io/oc/Viewerversion.html";
+        
+        // Hub main page for fallback login
+        const HUB_LOGIN_URL = "./index.html"; 
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedUser = localStorage.getItem('flairs_hub_user');
+            const savedPin = localStorage.getItem('flairs_hub_pin');
+
+            if (savedUser && savedPin) {
+                document.getElementById('status-msg').innerText = "Credentials found! Redirecting...";
+                
+                // Construct destination URL with saved credentials attached
+                const destination = `${TARGET_URL}?user=${encodeURIComponent(savedUser)}&pin=${encodeURIComponent(savedPin)}`;
+                
+                // Perform immediate redirect
+                window.location.href = destination;
+            } else {
+                document.getElementById('status-msg').innerText = "No saved session found. Redirecting to login...";
+                
+                // Redirect back to main hub for login if credentials are missing
+                setTimeout(() => {
+                    window.location.href = HUB_LOGIN_URL;
+                }, 1200);
+            }
+        });
+    </script>
+</body>
+</html>

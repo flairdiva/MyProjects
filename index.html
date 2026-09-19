@@ -16,6 +16,17 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
 
     <style>
+        :root {
+            --bg-color: #fffafa;
+            --card-bg: #ffffff;
+            --accent-pink: #ff85a2;
+            --light-pink: #ffe4e9;
+            --text-main: #4a4a4a;
+            --sub-text: #d1a7b0;
+            --accent-teal: #2ec4b6;
+            --now-highlight: #ff3366;
+        }
+
         * {
             box-sizing: border-box;
             margin: 0;
@@ -26,11 +37,14 @@
         body {
             display: flex;
             min-height: 100vh;
-            background-color: #1a1a1a;
-            color: #e0e0e0;
+            background-color: var(--bg-color);
+            color: var(--text-main);
             position: relative;
             flex-direction: column;
             overflow-x: hidden;
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
         }
 
         /* --- BACKGROUND MEDIA LAYERS --- */
@@ -57,7 +71,8 @@
         #auth-overlay {
             position: fixed;
             top: 0; left: 0; width: 100vw; height: 100vh;
-            background: #121212;
+            background: rgba(255, 250, 250, 0.85);
+            backdrop-filter: blur(8px);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -65,21 +80,21 @@
         }
 
         .auth-card {
-            background: #242424;
+            background: var(--card-bg);
             padding: 28px;
-            border-radius: 8px;
-            border: 1px solid #333;
+            border-radius: 20px;
+            border: 1px solid var(--light-pink);
             width: 320px;
             display: flex;
             flex-direction: column;
             gap: 16px;
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
+            box-shadow: 0 15px 35px rgba(255, 133, 162, 0.15);
         }
 
         .auth-card h2 {
             font-size: 1.25rem;
             text-align: center;
-            color: #ffffff;
+            color: var(--accent-pink);
         }
 
         .auth-field {
@@ -90,44 +105,45 @@
 
         .auth-field label {
             font-size: 0.8rem;
-            color: #aaa;
+            color: var(--sub-text);
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            font-weight: bold;
         }
 
         .auth-field input {
-            background: #181818;
-            border: 1px solid #3d3d3d;
-            border-radius: 4px;
+            background: #fff;
+            border: 1px solid var(--light-pink);
+            border-radius: 8px;
             padding: 10px;
-            color: #fff;
+            color: var(--text-main);
             font-size: 1rem;
             outline: none;
         }
 
         .auth-field input:focus {
-            border-color: #ffa3d9;
+            border-color: var(--accent-pink);
         }
 
         .auth-btn {
-            background: #ffa3d9;
-            color: #121212;
+            background: var(--accent-pink);
+            color: #ffffff;
             border: none;
             padding: 10px;
-            border-radius: 4px;
+            border-radius: 20px;
             font-weight: bold;
             font-size: 1rem;
             cursor: pointer;
-            transition: background 0.2s;
+            transition: opacity 0.2s;
             margin-top: 6px;
         }
 
         .auth-btn:hover {
-            background: #a33877;
+            opacity: 0.9;
         }
 
         #auth-error {
-            color: #ff4d4d;
+            color: var(--now-highlight);
             font-size: 0.85rem;
             text-align: center;
             display: none;
@@ -140,44 +156,68 @@
             width: 100%;
             max-width: 1000px;
             margin: 0 auto;
-            padding: 40px 20px;
+            padding: 20px;
             display: none;
             flex-direction: column;
             gap: 24px;
         }
 
         .hub-header {
-            background: rgba(36, 36, 36, 0.92);
+            background: rgba(255, 255, 255, 0.92);
             backdrop-filter: blur(8px);
-            border: 1px solid #333;
-            border-radius: 12px;
+            border: 1px solid var(--light-pink);
+            border-radius: 20px;
             padding: 24px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+            box-shadow: 0 15px 35px rgba(255, 133, 162, 0.1);
         }
 
         .hub-title h1 {
             font-size: 1.6rem;
-            color: #fff;
+            color: var(--accent-pink);
             margin-bottom: 4px;
         }
 
         .hub-title p {
             font-size: 0.9rem;
-            color: #aaa;
+            color: var(--sub-text);
+        }
+
+        .user-controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
         }
 
         .user-badge {
-            background: #181818;
-            border: 1px solid #ffa3d9;
-            color: #ffa3d9;
+            background: var(--bg-color);
+            border: 1px solid var(--light-pink);
+            color: var(--accent-pink);
             padding: 8px 16px;
             border-radius: 20px;
             font-size: 0.85rem;
             font-weight: bold;
             text-transform: capitalize;
+        }
+
+        .logout-btn {
+            background: var(--light-pink);
+            color: var(--now-highlight);
+            border: 1px solid var(--light-pink);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .logout-btn:hover {
+            background: var(--now-highlight);
+            color: #ffffff;
+            border-color: var(--now-highlight);
         }
 
         /* --- PROJECT GRID --- */
@@ -188,10 +228,10 @@
         }
 
         .project-card {
-            background: rgba(36, 36, 36, 0.92);
+            background: rgba(255, 255, 255, 0.92);
             backdrop-filter: blur(8px);
-            border: 1px solid #333;
-            border-radius: 12px;
+            border: 1px solid var(--light-pink);
+            border-radius: 20px;
             padding: 20px;
             display: flex;
             flex-direction: column;
@@ -199,16 +239,16 @@
             gap: 16px;
             cursor: pointer;
             transition: all 0.25s ease;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            box-shadow: 0 10px 25px rgba(255, 133, 162, 0.08);
             text-decoration: none;
             color: inherit;
         }
 
         .project-card:hover {
             transform: translateY(-4px);
-            border-color: #ffa3d9;
-            box-shadow: 0 8px 25px rgba(255, 163, 217, 0.2);
-            background: rgba(45, 45, 45, 0.95);
+            border-color: var(--accent-pink);
+            box-shadow: 0 15px 35px rgba(255, 133, 162, 0.2);
+            background: rgba(255, 255, 255, 0.98);
         }
 
         .project-icon {
@@ -224,34 +264,34 @@
             width: 100%;
             height: 100%;
             object-fit: contain;
-            border-radius: 4px;
+            border-radius: 6px;
         }
 
         .project-info h3 {
             font-size: 1.2rem;
-            color: #ffffff;
+            color: var(--text-main);
             margin-bottom: 6px;
         }
 
         .project-info p {
             font-size: 0.85rem;
-            color: #aaa;
+            color: var(--sub-text);
             line-height: 1.4;
         }
 
         .launch-btn {
-            background: #ffa3d9;
-            color: #121212;
+            background: var(--accent-pink);
+            color: #ffffff;
             text-align: center;
             padding: 10px;
-            border-radius: 6px;
+            border-radius: 20px;
             font-weight: bold;
             font-size: 0.9rem;
-            transition: background 0.2s;
+            transition: opacity 0.2s;
         }
 
         .project-card:hover .launch-btn {
-            background: #ffffff;
+            opacity: 0.9;
         }
     </style>
 </head>
@@ -285,7 +325,10 @@
                 <h1>Project Portal</h1>
                 <p>Select a project below to launch with your credentials auto-applied.</p>
             </div>
-            <div class="user-badge" id="user-badge">User: Guest</div>
+            <div class="user-controls">
+                <div class="user-badge" id="user-badge">User: Guest</div>
+                <button class="logout-btn" onclick="handleLogout()">Logout</button>
+            </div>
         </div>
 
         <div class="projects-grid" id="projects-grid"></div>
@@ -293,20 +336,19 @@
 
     <script>
         // --- HUB PROJECTS CONFIGURATION ---
-        // Provide an `image` path (or relative URL) for custom project icons.
         const PROJECTS_LIST = [
             {
                 id: "clothing-viewer",
                 title: "Flair's Dressroom",
                 description: "see all clothing options for my oc",
-                image: "./images/DressroomIcon.png", // Path to your custom icon image file
+                image: "./images/DressroomIcon.png",
                 url: "https://flairdiva.github.io/oc/Viewerversion.html"
             },
             {
                 id: "Avanability-Calander",
                 title: "Avanability Calander",
                 description: "let others know when they can play with you",
-                image: "./images/AvanabilityCalander.png", // Path to your custom icon image file
+                image: "./images/AvanabilityCalander.png",
                 url: "https://flairdiva.github.io/me/calander"
             }
         ];
@@ -389,16 +431,28 @@
             bgVideoLayer.style.display = "none";
         }
 
-        // --- URL PARAMETER AUTO-LOGIN & INIT ---
+        // --- AUTO-LOGIN INITIALIZATION ---
         window.addEventListener('DOMContentLoaded', () => {
             const urlParams = new URLSearchParams(window.location.search);
             const userParam = urlParams.get('user');
             const pinParam = urlParams.get('pin');
 
+            // 1. Try URL parameters first
             if (userParam && pinParam) {
                 document.getElementById('username').value = userParam;
                 document.getElementById('pin').value = pinParam;
                 handleLogin(userParam, pinParam);
+                return;
+            }
+
+            // 2. Fall back to localStorage saved credentials
+            const savedUser = localStorage.getItem('flairs_hub_user');
+            const savedPin = localStorage.getItem('flairs_hub_pin');
+
+            if (savedUser && savedPin) {
+                document.getElementById('username').value = savedUser;
+                document.getElementById('pin').value = savedPin;
+                handleLogin(savedUser, savedPin);
             }
         });
 
@@ -418,16 +472,19 @@
 
                 if (!userData) {
                     showAuthError("Invalid username or PIN");
+                    clearStoredCredentials();
                     return;
                 }
 
                 if (userData.pin === null || String(userData.pin) !== pinInput) {
                     showAuthError("Invalid username or PIN");
+                    clearStoredCredentials();
                     return;
                 }
 
                 if (userData.canEdit !== true) {
                     showAuthError("Access denied: account not authorized.");
+                    clearStoredCredentials();
                     return;
                 }
 
@@ -435,6 +492,10 @@
                 isAuthenticated = true;
                 currentUser = usernameInput;
                 currentPin = pinInput;
+
+                // Save credentials in LocalStorage for automatic login next session
+                localStorage.setItem('flairs_hub_user', currentUser);
+                localStorage.setItem('flairs_hub_pin', currentPin);
 
                 authOverlay.style.display = 'none';
                 hubContainer.style.display = 'flex';
@@ -449,6 +510,31 @@
             }
         }
 
+        function handleLogout() {
+            clearStoredCredentials();
+            isAuthenticated = false;
+            currentUser = "";
+            currentPin = "";
+
+            // Reset UI State
+            document.getElementById('username').value = '';
+            document.getElementById('pin').value = '';
+            authError.style.display = 'none';
+            hubContainer.style.display = 'none';
+            authOverlay.style.display = 'flex';
+
+            // Pause media video on logout
+            if (bgVideoLayer) {
+                bgVideoLayer.pause();
+                bgVideoLayer.style.display = 'none';
+            }
+        }
+
+        function clearStoredCredentials() {
+            localStorage.removeItem('flairs_hub_user');
+            localStorage.removeItem('flairs_hub_pin');
+        }
+
         function showAuthError(msg) {
             authError.innerText = msg;
             authError.style.display = 'block';
@@ -459,7 +545,6 @@
             projectsGrid.innerHTML = '';
 
             PROJECTS_LIST.forEach(project => {
-                // Construct target URL with auto-appended user & pin credentials
                 const targetUrl = `${project.url}?user=${encodeURIComponent(currentUser)}&pin=${encodeURIComponent(currentPin)}`;
 
                 const card = document.createElement('a');
