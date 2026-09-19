@@ -1,1 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+    <!-- Cache Control Meta Tags -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+
+    <title>Flairs Project Hub</title>
+
+    <!-- Firebase SDK (Modular compatibility scripts) -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        body {
+            display: flex;
+            min-height: 100vh;
+            background-color: #1a1a1a;
+            color: #e0e0e0;
+            position: relative;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        /* --- BACKGROUND MEDIA LAYERS --- */
+        #bg-image-layer {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            z-index: 0;
+            display: none;
+        }
+
+        #bg-video-layer {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            object-fit: cover;
+            z-index: 0;
+            display: none;
+            pointer-events: none;
+        }
+
+        /* --- AUTH OVERLAY --- */
+        #auth-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: #121212;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .auth-card {
+            background: #242424;
+            padding: 28px;
+            border-radius: 8px;
+            border: 1px solid #333;
+            width: 320px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
+        }
+
+        .auth-card h2 {
+            font-size: 1.25rem;
+            text-align: center;
+            color: #ffffff;
+        }
+
+        .auth-field {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .auth-field label {
+            font-size: 0.8rem;
+            color: #aaa;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .auth-field input {
+            background: #181818;
+            border: 1px solid #3d3d3d;
+            border-radius: 4px;
+            padding: 10px;
+            color: #fff;
+            font-size: 1rem;
+            outline: none;
+        }
+
+        .auth-field input:focus {
+            border-color: #ffa3d9;
+        }
+
+        .auth-btn {
+            background: #ffa3d9;
+            color: #121212;
+            border: none;
+            padding: 10px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-top: 6px;
+        }
+
+        .auth-btn:hover {
+            background: #a33877;
+        }
+
+        #auth-error {
+            color: #ff4d4d;
+            font-size: 0.85rem;
+            text-align: center;
+            display: none;
+        }
+
+        /* --- MAIN HUB CONTAINER --- */
+        #hub-container {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            display: none;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .hub-header {
+            background: rgba(36, 36, 36, 0.92);
+            backdrop-filter: blur(8px);
+            border: 1px solid #333;
+            border-radius: 12px;
+            padding: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        .hub-title h1 {
+            font-size: 1.6rem;
+            color: #fff;
+            margin-bottom: 4px;
+        }
+
+        .hub-title p {
+            font-size: 0.9rem;
+            color: #aaa;
+        }
+
+        .user-badge {
+            background: #181818;
+            border: 1px solid #ffa3d9;
+            color: #ffa3d9;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            text-transform: capitalize;
+        }
+
+        /* --- PROJECT GRID --- */
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .project-card {
+            background: rgba(36, 36, 36, 0.92);
+            backdrop-filter: blur(8px);
+            border: 1px solid #333;
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            gap: 16px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .project-card:hover {
+            transform: translateY(-4px);
+            border-color: #ffa3d9;
+            box-shadow: 0 8px 25px rgba(255, 163, 217, 0.2);
+            background: rgba(45, 45, 45, 0.95);
+        }
+
+        .project-icon {
+            width: 2.2rem;
+            height: 2.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.2rem;
+        }
+
+        .project-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            border-radius: 4px;
+        }
+
+        .project-info h3 {
+            font-size: 1.2rem;
+            color: #ffffff;
+            margin-bottom: 6px;
+        }
+
+        .project-info p {
+            font-size: 0.85rem;
+            color: #aaa;
+            line-height: 1.4;
+        }
+
+        .launch-btn {
+            background: #ffa3d9;
+            color: #121212;
+            text-align: center;
+            padding: 10px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            transition: background 0.2s;
+        }
+
+        .project-card:hover .launch-btn {
+            background: #ffffff;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- BACKGROUND MEDIA LAYERS -->
+    <div id="bg-image-layer"></div>
+    <video id="bg-video-layer" loop playsinline></video>
+
+    <!-- AUTHENTICATION OVERLAY -->
+    <div id="auth-overlay">
+        <div class="auth-card">
+            <h2>Flairs Hub Login</h2>
+            <div class="auth-field">
+                <label for="username">Username</label>
+                <input type="text" id="username" placeholder="User" />
+            </div>
+            <div class="auth-field">
+                <label for="pin">PIN / Password</label>
+                <input type="password" id="pin" placeholder="Enter PIN" />
+            </div>
+            <div id="auth-error">Invalid Username or PIN</div>
+            <button class="auth-btn" onclick="handleLogin()">Login</button>
+        </div>
+    </div>
+
+    <!-- MAIN HUB DASHBOARD -->
+    <div id="hub-container">
+        <div class="hub-header">
+            <div class="hub-title">
+                <h1>Project Portal</h1>
+                <p>Select a project below to launch with your credentials auto-applied.</p>
+            </div>
+            <div class="user-badge" id="user-badge">User: Guest</div>
+        </div>
+
+        <div class="projects-grid" id="projects-grid"></div>
+    </div>
+
+    <script>
+        // --- HUB PROJECTS CONFIGURATION ---
+        // Provide an `image` path (or relative URL) for custom project icons.
+        const PROJECTS_LIST = [
+            {
+                id: "clothing-viewer",
+                title: "Flair's Dressroom",
+                description: "see all clothing options for my oc",
+                image: "./images/DressroomIcon.png", // Path to your custom icon image file
+                url: "https://flairdiva.github.io/oc/Viewerversion.html"
+            },
+            {
+                id: "Avanability-Calander",
+                title: "Avanability Calander",
+                description: "let others know when they can play with you",
+                image: "./images/AvanabilityCalander.png", // Path to your custom icon image file
+                url: "https://flairdiva.github.io/me/calander"
+            }
+        ];
+
+        // --- BACKGROUND CONFIGURATION ---
+        const BACKGROUND_CONFIG = {
+            type: "video", // "image" or "video"
+            imageSrc: "./background.png",
+            videoSrc: "./background.mp4"
+        };
+
+        // --- FIREBASE CONFIGURATION ---
+        const firebaseConfig = {
+            databaseURL: "https://flairdiva-7399b-default-rtdb.europe-west1.firebasedatabase.app"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        // Global User State
+        let currentUser = "";
+        let currentPin = "";
+        let isAuthenticated = false;
+
+        // DOM Elements
+        const authOverlay = document.getElementById('auth-overlay');
+        const authError = document.getElementById('auth-error');
+        const hubContainer = document.getElementById('hub-container');
+        const userBadge = document.getElementById('user-badge');
+        const projectsGrid = document.getElementById('projects-grid');
+        const bgImageLayer = document.getElementById('bg-image-layer');
+        const bgVideoLayer = document.getElementById('bg-video-layer');
+
+        // Setup background media source
+        function setupBackgroundMedia() {
+            if (BACKGROUND_CONFIG.type === "video" && BACKGROUND_CONFIG.videoSrc) {
+                bgVideoLayer.src = BACKGROUND_CONFIG.videoSrc;
+                bgVideoLayer.style.display = "block";
+                bgImageLayer.style.display = "none";
+                bgVideoLayer.muted = false;
+                
+                const playPromise = bgVideoLayer.play();
+                if (playPromise !== undefined) {
+                    playPromise.catch(err => {
+                        console.warn("Autoplay with audio blocked. Waiting for gesture.", err);
+                        setupUserInteractionHandler();
+                    });
+                }
+            } else {
+                setupFallbackImage();
+            }
+        }
+
+        function setupUserInteractionHandler() {
+            const startMedia = () => {
+                if (!isAuthenticated) return;
+                if (BACKGROUND_CONFIG.type === "video" && bgVideoLayer.paused) {
+                    bgVideoLayer.muted = false;
+                    bgVideoLayer.play().then(() => removeListeners()).catch(err => console.error(err));
+                } else {
+                    removeListeners();
+                }
+            };
+
+            function removeListeners() {
+                window.removeEventListener('click', startMedia);
+                window.removeEventListener('keydown', startMedia);
+                window.removeEventListener('touchstart', startMedia);
+            }
+
+            window.addEventListener('click', startMedia, { once: false });
+            window.addEventListener('keydown', startMedia, { once: false });
+            window.addEventListener('touchstart', startMedia, { once: false });
+        }
+
+        function setupFallbackImage() {
+            if (BACKGROUND_CONFIG.imageSrc) {
+                bgImageLayer.style.backgroundImage = `url('${BACKGROUND_CONFIG.imageSrc}')`;
+                bgImageLayer.style.display = "block";
+            }
+            bgVideoLayer.style.display = "none";
+        }
+
+        // --- URL PARAMETER AUTO-LOGIN & INIT ---
+        window.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const userParam = urlParams.get('user');
+            const pinParam = urlParams.get('pin');
+
+            if (userParam && pinParam) {
+                document.getElementById('username').value = userParam;
+                document.getElementById('pin').value = pinParam;
+                handleLogin(userParam, pinParam);
+            }
+        });
+
+        // --- AUTHENTICATION ---
+        async function handleLogin(providedUser, providedPin) {
+            const usernameInput = (providedUser || document.getElementById('username').value).trim().toLowerCase();
+            const pinInput = (providedPin || document.getElementById('pin').value).trim();
+
+            if (!usernameInput || !pinInput) {
+                showAuthError("Please enter both username and PIN");
+                return;
+            }
+
+            try {
+                const snapshot = await database.ref(`users/${usernameInput}`).once('value');
+                const userData = snapshot.val();
+
+                if (!userData) {
+                    showAuthError("Invalid username or PIN");
+                    return;
+                }
+
+                if (userData.pin === null || String(userData.pin) !== pinInput) {
+                    showAuthError("Invalid username or PIN");
+                    return;
+                }
+
+                if (userData.canEdit !== true) {
+                    showAuthError("Access denied: account not authorized.");
+                    return;
+                }
+
+                // Authentication Success
+                isAuthenticated = true;
+                currentUser = usernameInput;
+                currentPin = pinInput;
+
+                authOverlay.style.display = 'none';
+                hubContainer.style.display = 'flex';
+                userBadge.innerText = `User: ${currentUser}`;
+
+                setupBackgroundMedia();
+                renderProjects();
+
+            } catch (err) {
+                console.error("Database auth error:", err);
+                showAuthError("Authentication error. Check connection.");
+            }
+        }
+
+        function showAuthError(msg) {
+            authError.innerText = msg;
+            authError.style.display = 'block';
+        }
+
+        // --- RENDER HUB PROJECTS ---
+        function renderProjects() {
+            projectsGrid.innerHTML = '';
+
+            PROJECTS_LIST.forEach(project => {
+                // Construct target URL with auto-appended user & pin credentials
+                const targetUrl = `${project.url}?user=${encodeURIComponent(currentUser)}&pin=${encodeURIComponent(currentPin)}`;
+
+                const card = document.createElement('a');
+                card.className = 'project-card';
+                card.href = targetUrl;
+
+                const iconMarkup = project.image 
+                    ? `<img src="${project.image}" alt="${project.title} Icon" />` 
+                    : (project.icon || '📁');
+
+                card.innerHTML = `
+                    <div class="project-icon">${iconMarkup}</div>
+                    <div class="project-info">
+                        <h3>${project.title}</h3>
+                        <p>${project.description}</p>
+                    </div>
+                    <div class="launch-btn">Launch Project ➔</div>
+                `;
+
+                projectsGrid.appendChild(card);
+            });
+        }
+    </script>
+</body>
+</html>
