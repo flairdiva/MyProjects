@@ -67,6 +67,44 @@
             pointer-events: none;
         }
 
+        /* --- ANIMATED TOAST NOTIFICATION --- */
+        #login-toast {
+            position: fixed;
+            top: -80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 2px solid var(--accent-pink);
+            color: var(--text-main);
+            padding: 12px 24px;
+            border-radius: 30px;
+            box-shadow: 0 10px 25px rgba(255, 133, 162, 0.25);
+            z-index: 2000;
+            font-size: 0.95rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: top 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.4s ease;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        #login-toast.show {
+            top: 20px;
+            opacity: 1;
+        }
+
+        #login-toast .toast-icon {
+            font-size: 1.2rem;
+        }
+
+        #login-toast span b {
+            color: var(--accent-pink);
+            text-transform: capitalize;
+        }
+
         /* --- AUTH OVERLAY --- */
         #auth-overlay {
             position: fixed;
@@ -402,6 +440,12 @@
     <div id="bg-image-layer"></div>
     <video id="bg-video-layer" loop playsinline></video>
 
+    <!-- TOP CENTER TOAST POPUP -->
+    <div id="login-toast">
+        <span class="toast-icon">✅</span>
+        <span id="toast-message">Welcome back!</span>
+    </div>
+
     <!-- AUTHENTICATION OVERLAY -->
     <div id="auth-overlay">
         <div class="auth-card">
@@ -415,7 +459,7 @@
                 <input type="password" id="pin" placeholder="Enter PIN" />
             </div>
             <div id="auth-error">Invalid Username or PIN</div>
-            <button class="auth-btn" onclick="handleLogin()">Login</button>
+            <button class="auth-btn" onclick="handleLogin('manual')">Login</button>
         </div>
     </div>
 
@@ -546,6 +590,8 @@
         const adminTabBar = document.getElementById('admin-tab-bar');
         const bgImageLayer = document.getElementById('bg-image-layer');
         const bgVideoLayer = document.getElementById('bg-video-layer');
+        const loginToast = document.getElementById('login-toast');
+        const toastMessage = document.getElementById('toast-message');
 
         // Setup background media source
         function setupBackgroundMedia() {
@@ -597,6 +643,15 @@
             bgVideoLayer.style.display = "none";
         }
 
+        // --- SHOW TOAST POPUP ---
+        function showLoginToast(message) {
+            toastMessage.innerHTML = message;
+            loginToast.classList.add('show');
+            setTimeout(() => {
+                loginToast.classList.remove('show');
+            }, 4000);
+        }
+
         // --- TAB SWITCHING ---
         function switchTab(tabName) {
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
@@ -620,7 +675,7 @@
             if (userParam && pinParam) {
                 document.getElementById('username').value = userParam;
                 document.getElementById('pin').value = pinParam;
-                handleLogin(userParam, pinParam);
+                handleLogin('link', userParam, pinParam);
                 return;
             }
 
@@ -630,12 +685,12 @@
             if (savedUser && savedPin) {
                 document.getElementById('username').value = savedUser;
                 document.getElementById('pin').value = savedPin;
-                handleLogin(savedUser, savedPin);
+                handleLogin('session', savedUser, savedPin);
             }
         });
 
         // --- AUTHENTICATION ---
-        async function handleLogin(providedUser, providedPin) {
+        async function handleLogin(loginSource = 'manual', providedUser, providedPin) {
             const usernameInput = (providedUser || document.getElementById('username').value).trim().toLowerCase();
             const pinInput = (providedPin || document.getElementById('pin').value).trim();
 
@@ -682,6 +737,13 @@
 
                 setupBackgroundMedia();
                 renderProjects();
+
+                // Trigger Toast according to login method
+                if (loginSource === 'session') {
+                    showLoginToast(`Logged in as <b>${currentUser}</b> remembered from previous session`);
+                } else if (loginSource === 'link') {
+                    showLoginToast(`Automaticly logged in as <b>${currentUser}</b> via link`);
+                }
 
             } catch (err) {
                 console.error("Database auth error:", err);
@@ -761,7 +823,7 @@
                         const isUserEditable = userObj.canEdit !== undefined ? (userObj.canEdit === true || userObj.canEdit === "true") : true;
                         const landingVal = userObj.landingPage || "view";
 
-                        const initialUrl = `https://flairdiva.github.io/MyProjects/?${encodeURIComponent(u)}=flair&pin=${encodeURIComponent(userObj.pin)}`;
+                        const initialUrl = `https://flairdiva.github.io/MyProjects/?user=${encodeURIComponent(u)}&pin=${encodeURIComponent(userObj.pin)}`;
 
                         let gotoOptionsHtml = `<option value="">-- Main Portal --</option>`;
                         GOTO_SUBPAGES.forEach(sub => {
@@ -813,9 +875,11 @@
             if (!inputElem) return;
 
             if (selectedSubpage && selectedSubpage.trim() !== "") {
-                inputElem.value = `https://flairdiva.github.io/MyProjects/Goto/${selectedSubpage}?${encodeURIComponent(username)}=flair&pin=${encodeURIComponent(pin)}`;
+                // Direct link to subpage without login parameters
+                inputElem.value = `https://flairdiva.github.io/MyProjects/Goto/${selectedSubpage}`;
             } else {
-                inputElem.value = `https://flairdiva.github.io/MyProjects/?${encodeURIComponent(username)}=flair&pin=${encodeURIComponent(pin)}`;
+                // Main Portal with auto-login parameters
+                inputElem.value = `https://flairdiva.github.io/MyProjects/?user=${encodeURIComponent(username)}&pin=${encodeURIComponent(pin)}`;
             }
         }
 
