@@ -42,9 +42,9 @@
             position: relative;
             flex-direction: column;
             overflow-x: hidden;
-            justify-content: center;
+            justify-content: flex-start;
             align-items: center;
-            padding: 10px;
+            padding: 20px 10px;
         }
 
         /* --- BACKGROUND MEDIA LAYERS --- */
@@ -111,34 +111,33 @@
             font-weight: bold;
         }
 
-        .auth-field input {
+        .auth-field input, .admin-box input, .admin-box select {
             background: #fff;
             border: 1px solid var(--light-pink);
             border-radius: 8px;
-            padding: 10px;
+            padding: 8px 10px;
             color: var(--text-main);
-            font-size: 1rem;
+            font-size: 0.9rem;
             outline: none;
         }
 
-        .auth-field input:focus {
+        .auth-field input:focus, .admin-box input:focus {
             border-color: var(--accent-pink);
         }
 
-        .auth-btn {
+        .auth-btn, .btn {
             background: var(--accent-pink);
             color: #ffffff;
             border: none;
-            padding: 10px;
+            padding: 8px 16px;
             border-radius: 20px;
             font-weight: bold;
-            font-size: 1rem;
+            font-size: 0.9rem;
             cursor: pointer;
             transition: opacity 0.2s;
-            margin-top: 6px;
         }
 
-        .auth-btn:hover {
+        .auth-btn:hover, .btn:hover {
             opacity: 0.9;
         }
 
@@ -154,12 +153,11 @@
             position: relative;
             z-index: 1;
             width: 100%;
-            max-width: 1000px;
+            max-width: 1100px;
             margin: 0 auto;
-            padding: 20px;
             display: none;
             flex-direction: column;
-            gap: 24px;
+            gap: 20px;
         }
 
         .hub-header {
@@ -167,7 +165,7 @@
             backdrop-filter: blur(8px);
             border: 1px solid var(--light-pink);
             border-radius: 20px;
-            padding: 24px;
+            padding: 20px 24px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -218,6 +216,41 @@
             background: var(--now-highlight);
             color: #ffffff;
             border-color: var(--now-highlight);
+        }
+
+        /* --- TAB NAVIGATION BAR --- */
+        .tab-bar {
+            display: flex;
+            gap: 10px;
+            border-bottom: 2px solid var(--light-pink);
+            padding-bottom: 8px;
+        }
+
+        .tab-btn {
+            background: rgba(255, 255, 255, 0.8);
+            border: 1px solid var(--light-pink);
+            color: var(--text-main);
+            padding: 8px 18px;
+            border-radius: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active {
+            background: var(--accent-pink);
+            color: white;
+            border-color: var(--accent-pink);
+        }
+
+        .tab-content {
+            display: none;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .tab-content.active {
+            display: flex;
         }
 
         /* --- PROJECT GRID --- */
@@ -293,6 +326,74 @@
         .project-card:hover .launch-btn {
             opacity: 0.9;
         }
+
+        /* --- MANAGEMENT PANEL STYLES --- */
+        .section-header {
+            color: var(--accent-pink);
+            border-bottom: 2px dashed var(--light-pink);
+            padding-bottom: 6px;
+            margin-bottom: 12px;
+            font-size: 1.3rem;
+        }
+
+        .admin-box {
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(8px);
+            border: 1px solid var(--light-pink);
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(255, 133, 162, 0.08);
+            margin-bottom: 15px;
+        }
+
+        .admin-box h3 {
+            margin-bottom: 12px;
+            color: var(--accent-pink);
+        }
+
+        .user-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        .user-table th, .user-table td {
+            text-align: left;
+            padding: 10px 8px;
+            border-bottom: 1px solid var(--light-pink);
+            font-size: 0.85em;
+        }
+
+        .user-table th {
+            color: var(--accent-pink);
+        }
+
+        .link-input-group {
+            display: flex;
+            gap: 5px;
+            align-items: center;
+        }
+
+        .link-input-group input {
+            padding: 6px;
+            border: 1px solid var(--light-pink);
+            border-radius: 6px;
+            font-size: 0.75em;
+            width: 180px;
+            background: #fff;
+            color: #555;
+        }
+
+        .btn-danger {
+            background: #ff4d4d;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -331,7 +432,64 @@
             </div>
         </div>
 
-        <div class="projects-grid" id="projects-grid"></div>
+        <!-- TAB NAVIGATION (Admin Only) -->
+        <div class="tab-bar" id="admin-tab-bar" style="display: none;">
+            <button class="tab-btn active" onclick="switchTab('portal')">Projects Portal</button>
+            <button class="tab-btn" id="managementTabBtn" onclick="switchTab('management')">Management Panel</button>
+        </div>
+
+        <!-- TAB 1: PROJECTS PORTAL -->
+        <div class="tab-content active" id="tab-portal">
+            <div class="projects-grid" id="projects-grid"></div>
+        </div>
+
+        <!-- TAB 2: MANAGEMENT PANEL -->
+        <div class="tab-content" id="tab-management">
+            <h2 class="section-header">Calendar Settings & Management</h2>
+
+            <div class="admin-box">
+                <h3>Add New User</h3>
+                <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+                    <input type="text" id="newUsername" placeholder="Username">
+                    <input type="password" id="newPin" placeholder="4-Digit PIN" maxlength="4" style="width: 100px;">
+                    <label style="font-size:0.85em;">
+                        <input type="checkbox" id="newCanEdit" checked onchange="updateNewUserLandingOptions()"> Can Edit?
+                    </label>
+                    <label style="font-size:0.85em;">
+                        <input type="checkbox" id="newIsAdmin" onchange="updateNewUserLandingOptions()"> Admin Access?
+                    </label>
+                    <select id="newLandingPage">
+                        <option value="view">View page</option>
+                        <option value="edit">Edit page</option>
+                        <option value="users" disabled>User management</option>
+                    </select>
+                    <button class="btn" onclick="createNewUser()">Add User</button>
+                </div>
+                <span id="addUserStatus" style="font-size: 0.8em; color: var(--accent-pink); margin-top: 8px; display: block;"></span>
+            </div>
+
+            <div class="admin-box">
+                <h3>Existing Accounts</h3>
+                <div style="overflow-x: auto;">
+                    <table class="user-table">
+                        <thead>
+                            <tr>
+                                <th>Username</th>
+                                <th>PIN</th>
+                                <th>Role</th>
+                                <th>Can Edit?</th>
+                                <th>Landing Page</th>
+                                <th>Goto Subpage</th>
+                                <th>Direct Link</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="userTableBody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -353,9 +511,15 @@
             }
         ];
 
+        // Subpages inside ./Goto/ directory
+        const GOTO_SUBPAGES = [
+            "Viewerversion",
+            "calander"
+        ];
+
         // --- BACKGROUND CONFIGURATION ---
         const BACKGROUND_CONFIG = {
-            type: "video", // "image" or "video"
+            type: "video", 
             imageSrc: "./background.png",
             videoSrc: "./background.mp4"
         };
@@ -371,6 +535,7 @@
         let currentUser = "";
         let currentPin = "";
         let isAuthenticated = false;
+        let isAdmin = false;
 
         // DOM Elements
         const authOverlay = document.getElementById('auth-overlay');
@@ -378,6 +543,7 @@
         const hubContainer = document.getElementById('hub-container');
         const userBadge = document.getElementById('user-badge');
         const projectsGrid = document.getElementById('projects-grid');
+        const adminTabBar = document.getElementById('admin-tab-bar');
         const bgImageLayer = document.getElementById('bg-image-layer');
         const bgVideoLayer = document.getElementById('bg-video-layer');
 
@@ -392,7 +558,7 @@
                 const playPromise = bgVideoLayer.play();
                 if (playPromise !== undefined) {
                     playPromise.catch(err => {
-                        console.warn("Autoplay with audio blocked. Waiting for gesture.", err);
+                        console.warn("Autoplay audio blocked. Waiting for user interaction.", err);
                         setupUserInteractionHandler();
                     });
                 }
@@ -431,13 +597,26 @@
             bgVideoLayer.style.display = "none";
         }
 
+        // --- TAB SWITCHING ---
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+            if (tabName === 'portal') {
+                document.querySelectorAll('.tab-btn')[0].classList.add('active');
+                document.getElementById('tab-portal').classList.add('active');
+            } else if (tabName === 'management' && isAdmin) {
+                document.getElementById('managementTabBtn').classList.add('active');
+                document.getElementById('tab-management').classList.add('active');
+            }
+        }
+
         // --- AUTO-LOGIN INITIALIZATION ---
         window.addEventListener('DOMContentLoaded', () => {
             const urlParams = new URLSearchParams(window.location.search);
-            const userParam = urlParams.get('user');
+            const userParam = urlParams.get('user') || urlParams.get('flair');
             const pinParam = urlParams.get('pin');
 
-            // 1. Try URL parameters first
             if (userParam && pinParam) {
                 document.getElementById('username').value = userParam;
                 document.getElementById('pin').value = pinParam;
@@ -445,7 +624,6 @@
                 return;
             }
 
-            // 2. Fall back to localStorage saved credentials
             const savedUser = localStorage.getItem('flairs_hub_user');
             const savedPin = localStorage.getItem('flairs_hub_pin');
 
@@ -470,19 +648,13 @@
                 const snapshot = await database.ref(`users/${usernameInput}`).once('value');
                 const userData = snapshot.val();
 
-                if (!userData) {
+                if (!userData || userData.pin === null || String(userData.pin) !== pinInput) {
                     showAuthError("Invalid username or PIN");
                     clearStoredCredentials();
                     return;
                 }
 
-                if (userData.pin === null || String(userData.pin) !== pinInput) {
-                    showAuthError("Invalid username or PIN");
-                    clearStoredCredentials();
-                    return;
-                }
-
-                if (userData.canEdit !== true) {
+                if (userData.canEdit !== true && userData.admin !== true) {
                     showAuthError("Access denied: account not authorized.");
                     clearStoredCredentials();
                     return;
@@ -492,14 +664,21 @@
                 isAuthenticated = true;
                 currentUser = usernameInput;
                 currentPin = pinInput;
+                isAdmin = userData.admin === true || userData.admin === "true";
 
-                // Save credentials in LocalStorage for automatic login next session
                 localStorage.setItem('flairs_hub_user', currentUser);
                 localStorage.setItem('flairs_hub_pin', currentPin);
 
                 authOverlay.style.display = 'none';
                 hubContainer.style.display = 'flex';
-                userBadge.innerText = `User: ${currentUser}`;
+                userBadge.innerText = `User: ${currentUser}${isAdmin ? ' (Admin)' : ''}`;
+
+                if (isAdmin) {
+                    adminTabBar.style.display = 'flex';
+                    listenUserManagementData();
+                } else {
+                    adminTabBar.style.display = 'none';
+                }
 
                 setupBackgroundMedia();
                 renderProjects();
@@ -513,17 +692,16 @@
         function handleLogout() {
             clearStoredCredentials();
             isAuthenticated = false;
+            isAdmin = false;
             currentUser = "";
             currentPin = "";
 
-            // Reset UI State
             document.getElementById('username').value = '';
             document.getElementById('pin').value = '';
             authError.style.display = 'none';
             hubContainer.style.display = 'none';
             authOverlay.style.display = 'flex';
 
-            // Pause media video on logout
             if (bgVideoLayer) {
                 bgVideoLayer.pause();
                 bgVideoLayer.style.display = 'none';
@@ -565,6 +743,143 @@
                 `;
 
                 projectsGrid.appendChild(card);
+            });
+        }
+
+        // --- MANAGEMENT PANEL FUNCTIONS ---
+        function listenUserManagementData() {
+            database.ref('users').on('value', (snapshot) => {
+                const tableBody = document.getElementById("userTableBody");
+                tableBody.innerHTML = "";
+
+                if (snapshot.exists()) {
+                    const usersMap = snapshot.val();
+
+                    Object.keys(usersMap).forEach(u => {
+                        const userObj = usersMap[u];
+                        const isUserAdmin = userObj.admin === true || userObj.admin === "true";
+                        const isUserEditable = userObj.canEdit !== undefined ? (userObj.canEdit === true || userObj.canEdit === "true") : true;
+                        const landingVal = userObj.landingPage || "view";
+
+                        const initialUrl = `https://flairdiva.github.io/MyProjects/?${encodeURIComponent(u)}=flair&pin=${encodeURIComponent(userObj.pin)}`;
+
+                        let gotoOptionsHtml = `<option value="">-- Main Portal --</option>`;
+                        GOTO_SUBPAGES.forEach(sub => {
+                            gotoOptionsHtml += `<option value="${sub}">${sub}</option>`;
+                        });
+
+                        const row = document.createElement("tr");
+                        row.innerHTML = `
+                            <td><b>${u}</b></td>
+                            <td>${userObj.pin}</td>
+                            <td>${isUserAdmin ? 'Admin' : 'User'}</td>
+                            <td>
+                                <input type="checkbox" ${isUserEditable ? 'checked' : ''} onchange="toggleUserCanEdit('${u}', this.checked)">
+                            </td>
+                            <td>
+                                <select onchange="updateUserLandingPage('${u}', this.value)">
+                                    <option value="view" ${landingVal === 'view' ? 'selected' : ''}>View page</option>
+                                    <option value="edit" ${landingVal === 'edit' ? 'selected' : ''} ${!isUserEditable ? 'disabled' : ''}>Edit page</option>
+                                    <option value="users" ${landingVal === 'users' ? 'selected' : ''} ${!isUserAdmin ? 'disabled' : ''}>User management</option>
+                                </select>
+                            </td>
+                            <td>
+                                <select id="goto-select-${u}" onchange="updateUserGeneratedLink('${u}', '${userObj.pin}', this.value)">
+                                    ${gotoOptionsHtml}
+                                </select>
+                            </td>
+                            <td>
+                                <div class="link-input-group">
+                                    <input type="text" readonly value="${initialUrl}" id="link-${u}" onclick="this.select()">
+                                    <button class="btn" onclick="copyUserLink('${u}')">Copy</button>
+                                </div>
+                            </td>
+                            <td>
+                                <button class="btn-danger" onclick="deleteUser('${u}')">Delete Account</button>
+                            </td>
+                        `;
+                        tableBody.appendChild(row);
+                    });
+                }
+            });
+        }
+
+        function updateUserLandingPage(username, newLanding) {
+            database.ref(`users/${username}/landingPage`).set(newLanding);
+        }
+
+        function updateUserGeneratedLink(username, pin, selectedSubpage) {
+            const inputElem = document.getElementById(`link-${username}`);
+            if (!inputElem) return;
+
+            if (selectedSubpage && selectedSubpage.trim() !== "") {
+                inputElem.value = `https://flairdiva.github.io/MyProjects/Goto/${selectedSubpage}?${encodeURIComponent(username)}=flair&pin=${encodeURIComponent(pin)}`;
+            } else {
+                inputElem.value = `https://flairdiva.github.io/MyProjects/?${encodeURIComponent(username)}=flair&pin=${encodeURIComponent(pin)}`;
+            }
+        }
+
+        function copyUserLink(username) {
+            const inputElem = document.getElementById(`link-${username}`);
+            if (inputElem) {
+                inputElem.select();
+                navigator.clipboard.writeText(inputElem.value).then(() => {
+                    alert(`URL copied to clipboard!`);
+                }).catch(() => {
+                    document.execCommand('copy');
+                    alert(`URL copied to clipboard!`);
+                });
+            }
+        }
+
+        function toggleUserCanEdit(username, canEditState) {
+            database.ref(`users/${username}/canEdit`).set(canEditState);
+        }
+
+        function deleteUser(username) {
+            if (confirm(`Are you sure you want to delete the account '${username}'?`)) {
+                database.ref(`users/${username}`).remove();
+            }
+        }
+
+        function updateNewUserLandingOptions() {
+            const canEdit = document.getElementById("newCanEdit").checked;
+            const isAdmin = document.getElementById("newIsAdmin").checked;
+            const landingSelect = document.getElementById("newLandingPage");
+
+            landingSelect.options[1].disabled = !canEdit;
+            landingSelect.options[2].disabled = !isAdmin;
+
+            if (landingSelect.value === "edit" && !canEdit) landingSelect.value = "view";
+            if (landingSelect.value === "users" && !isAdmin) landingSelect.value = "view";
+        }
+
+        function createNewUser() {
+            const newName = document.getElementById("newUsername").value.trim().toLowerCase();
+            const newPin = document.getElementById("newPin").value.trim();
+            const newCanEdit = document.getElementById("newCanEdit").checked;
+            const newIsAdmin = document.getElementById("newIsAdmin").checked;
+            const newLanding = document.getElementById("newLandingPage").value;
+            const status = document.getElementById("addUserStatus");
+
+            if (!newName || newPin.length !== 4) {
+                status.innerText = "Please provide username & 4-digit PIN";
+                return;
+            }
+
+            database.ref(`users/${newName}`).set({
+                pin: String(newPin),
+                canEdit: newCanEdit,
+                admin: newIsAdmin,
+                landingPage: newLanding
+            }).then(() => {
+                status.innerText = `User '${newName}' created successfully!`;
+                document.getElementById("newUsername").value = "";
+                document.getElementById("newPin").value = "";
+                document.getElementById("newCanEdit").checked = true;
+                document.getElementById("newIsAdmin").checked = false;
+                document.getElementById("newLandingPage").value = "view";
+                updateNewUserLandingOptions();
             });
         }
     </script>
