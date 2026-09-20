@@ -623,6 +623,14 @@
             gap: 8px;
         }
 
+        .blog-post-editor {
+            margin-top: 18px;
+        }
+
+        .blog-post.editor-open {
+            border-left-width: 6px;
+        }
+
         .blog-editor-post-header {
             display: flex;
             justify-content: space-between;
@@ -663,6 +671,51 @@
             display: flex;
             gap: 10px;
             flex-wrap: wrap;
+        }
+
+        .blog-editor-top-actions {
+            display: none;
+            margin-bottom: 4px;
+        }
+
+        .blog-editor-top-actions.visible {
+            display: flex;
+        }
+
+        #floating-blog-save {
+            position: fixed;
+            right: 24px;
+            top: 50%;
+            z-index: 2500;
+            width: 48px;
+            height: 48px;
+            border: 0;
+            border-radius: 50%;
+            background: var(--accent-pink);
+            color: #fff;
+            box-shadow: 0 8px 20px rgba(255, 133, 162, 0.35);
+            cursor: pointer;
+            font-size: 1.25rem;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-50%) scale(0.8);
+            transition: opacity 0.2s ease, visibility 0.2s ease, transform 0.2s ease;
+        }
+
+        #floating-blog-save.visible {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(-50%) scale(1);
+        }
+
+        #floating-blog-save:hover {
+            transform: translateY(-50%) scale(1.08);
+        }
+
+        @media (max-width: 700px) {
+            #floating-blog-save {
+                right: 14px;
+            }
         }
 
         /* --- PROJECT GRID --- */
@@ -821,6 +874,8 @@
         <img id="blog-lightbox-image" alt="">
     </div>
 
+    <button id="floating-blog-save" type="button" aria-label="Edit blog" title="Edit blog" onclick="handleFloatingBlogAction()">✎</button>
+
     <!-- AUTHENTICATION OVERLAY -->
     <div id="auth-overlay">
         <div class="auth-card">
@@ -885,6 +940,11 @@
                             <option value="all">All tags</option>
                         </select>
                     </div>
+                    <div class="blog-editor-actions blog-editor-top-actions" id="blog-editor-top-actions">
+                        <button class="btn" onclick="addBlogPostEditor()">Add Post</button>
+                        <button class="btn" onclick="saveBlogContent()">Save</button>
+                        <button class="logout-btn" onclick="toggleBlogEditor(false)">Cancel</button>
+                    </div>
                     <div class="blog-posts" id="blog-posts"></div>
                     <div class="blog-editor" id="blog-editor">
                         <input id="blog-title-input" type="text" placeholder="Blog title">
@@ -895,7 +955,7 @@
                             <code>**bold**</code> <code>||spoiler||</code> <code>~~strikethrough~~</code><br>
                             <code>```code```</code> <code>(link text)[https://example.com]</code>
                         </div>
-                        <div id="blog-editor-posts"></div>
+                        <div id="blog-editor-posts" hidden></div>
                         <div class="blog-editor-actions">
                             <button class="btn" onclick="addBlogPostEditor()">Add Post</button>
                             <button class="btn" onclick="saveBlogContent()">Save</button>
@@ -1019,6 +1079,7 @@
         const editBlogButton = document.getElementById('edit-blog-btn');
         const blogImageLightbox = document.getElementById('blog-image-lightbox');
         const blogLightboxImage = document.getElementById('blog-lightbox-image');
+        const floatingBlogSave = document.getElementById('floating-blog-save');
 
         // Setup background media source
         function setupBackgroundMedia() {
@@ -1135,6 +1196,7 @@
             currentTab.classList.remove('active');
             currentTab.classList.add('sliding', 'outgoing', outgoingDirection);
             nextTab.classList.add('sliding', 'incoming', incomingDirection);
+            updateFloatingBlogSave();
 
             const nextHeight = nextTab.scrollHeight;
             requestAnimationFrame(() => {
@@ -1148,6 +1210,7 @@
                 nextTab.className = 'tab-content active';
                 viewport.style.height = '';
                 delete viewport.dataset.animating;
+                updateFloatingBlogSave();
 
                 const queuedTabName = pendingTabName;
                 pendingTabName = null;
@@ -1269,6 +1332,8 @@
             authOverlay.style.display = 'flex';
             adminTabBar.style.display = 'none';
             editBlogButton.style.display = 'none';
+            document.getElementById('blog-editor-top-actions').classList.remove('visible');
+            floatingBlogSave.classList.remove('visible');
 
             if (bgVideoLayer) {
                 bgVideoLayer.pause();
@@ -1318,7 +1383,7 @@
                 return;
             }
 
-            postEntries.forEach(([, post]) => {
+            postEntries.forEach(([postId, post]) => {
                 const article = document.createElement('article');
                 article.className = 'blog-post';
                 if (post.image) {
@@ -1350,6 +1415,10 @@
                         tagList.appendChild(tagElement);
                     });
                     article.appendChild(tagList);
+                }
+                if (document.getElementById('blog-editor').classList.contains('open') && isAdmin) {
+                    article.classList.add('editor-open');
+                    article.appendChild(createBlogPostEditor(post, postId));
                 }
                 postsContainer.appendChild(article);
             });
@@ -1404,6 +1473,9 @@
         document.addEventListener('keydown', event => {
             if (event.key === 'Escape') closeBlogImageLightbox();
         });
+
+        window.addEventListener('scroll', updateFloatingBlogSave, { passive: true });
+        window.addEventListener('resize', updateFloatingBlogSave);
 
         function renderFormattedBlogText(container, text) {
             const lines = String(text).split(/\r?\n/);
@@ -1501,13 +1573,20 @@
             document.getElementById('blog-intro-input').value = blog.intro || '';
             const editorPosts = document.getElementById('blog-editor-posts');
             editorPosts.innerHTML = '';
-            Object.entries(blog.posts || {}).forEach(([postId, post]) => addBlogPostEditor(post, postId));
         }
 
         function addBlogPostEditor(post = {}, postId = `post-${Date.now()}`) {
-            const editorPosts = document.getElementById('blog-editor-posts');
+            const article = document.createElement('article');
+            article.className = 'blog-post editor-open';
+            const title = document.createElement('h3');
+            title.innerText = 'New post';
+            article.append(title, createBlogPostEditor(post, postId));
+            document.getElementById('blog-posts').appendChild(article);
+        }
+
+        function createBlogPostEditor(post = {}, postId = `post-${Date.now()}`) {
             const postEditor = document.createElement('div');
-            postEditor.className = 'blog-editor-post';
+            postEditor.className = 'blog-editor-post blog-post-editor';
             postEditor.dataset.postId = postId;
             postEditor.innerHTML = `
                 <div class="blog-editor-post-header">
@@ -1530,15 +1609,40 @@
             postEditor.querySelector('.blog-post-tags').value = getPostTags(post).join(', ');
             postEditor.querySelector('.blog-post-public').checked = post.public !== false;
             postEditor.querySelector('.blog-post-body').value = post.body || '';
-            editorPosts.appendChild(postEditor);
+            return postEditor;
         }
 
         function toggleBlogEditor(forceState) {
             if (!isAdmin) return;
             const editor = document.getElementById('blog-editor');
+            const topActions = document.getElementById('blog-editor-top-actions');
             const shouldOpen = forceState === undefined ? !editor.classList.contains('open') : forceState;
             editor.classList.toggle('open', shouldOpen);
-            if (shouldOpen) loadBlogContent();
+            topActions.classList.toggle('visible', shouldOpen);
+            loadBlogContent();
+            requestAnimationFrame(updateFloatingBlogSave);
+        }
+
+        function updateFloatingBlogSave() {
+            const editor = document.getElementById('blog-editor');
+            const contentTab = document.getElementById('tab-content');
+            const topActions = document.getElementById('blog-editor-top-actions');
+            const isEditing = editor.classList.contains('open');
+            const shouldShow = isAdmin && contentTab.classList.contains('active');
+            floatingBlogSave.innerText = isEditing ? '💾' : '✎';
+            floatingBlogSave.setAttribute('aria-label', isEditing ? 'Save blog' : 'Edit blog');
+            floatingBlogSave.title = isEditing ? 'Save blog' : 'Edit blog';
+            floatingBlogSave.classList.toggle('visible', shouldShow);
+        }
+
+        function handleFloatingBlogAction() {
+            if (!isAdmin) return;
+            const editor = document.getElementById('blog-editor');
+            if (editor.classList.contains('open')) {
+                saveBlogContent();
+            } else {
+                toggleBlogEditor(true);
+            }
         }
 
         function saveBlogContent() {
