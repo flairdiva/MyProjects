@@ -402,6 +402,61 @@
             margin-bottom: 24px;
         }
 
+        .blog-activity {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255, 228, 233, 0.35);
+            border: 1px dashed var(--accent-pink);
+            border-radius: 10px;
+            padding: 8px 10px;
+            margin-bottom: 16px;
+            font-size: 0.85rem;
+        }
+
+        .blog-activity-image {
+            width: 42px;
+            height: 42px;
+            border-radius: 8px;
+            object-fit: cover;
+            flex: 0 0 auto;
+        }
+
+        .blog-activity strong {
+            color: var(--accent-pink);
+        }
+
+        .blog-activity-editor {
+            display: none;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 8px;
+            background: rgba(255, 228, 233, 0.35);
+            border: 1px solid var(--light-pink);
+            border-radius: 10px;
+            padding: 10px;
+            margin-bottom: 14px;
+        }
+
+        .blog-activity-editor.visible {
+            display: grid;
+        }
+
+        .blog-activity-editor .full-width {
+            grid-column: 1 / -1;
+        }
+
+        .blog-activity-editor-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .blog-activity-editor select,
+        .blog-activity-editor input {
+            min-width: 0;
+        }
+
         .blog-posts {
             display: flex;
             flex-direction: column;
@@ -934,6 +989,7 @@
                 <div class="blog-page">
                     <h2 id="blog-title">Loading blog...</h2>
                     <p class="blog-intro" id="blog-intro"></p>
+                    <div id="blog-activity"></div>
                     <div class="blog-filter-bar">
                         <label for="blog-tag-filter">Filter:</label>
                         <select id="blog-tag-filter" onchange="filterBlogPosts(this.value)">
@@ -944,6 +1000,31 @@
                         <button class="btn" onclick="addBlogPostEditor()">Add Post</button>
                         <button class="btn" onclick="saveBlogContent()">Save</button>
                         <button class="logout-btn" onclick="toggleBlogEditor(false)">Cancel</button>
+                    </div>
+                    <div class="blog-activity-editor blog-editor-activity" id="blog-editor-activity">
+                        <select id="activity-action">
+                            <option value="">No current activity</option>
+                            <option value="playing">Playing</option>
+                            <option value="listening">Listening to</option>
+                            <option value="watching">Watching</option>
+                            <option value="reading">Reading</option>
+                            <option value="doing">Doing</option>
+                            <option value="Working">Working</option>
+                        </select>
+                        <input id="activity-text" type="text" placeholder="Activity name or description">
+                        <input id="activity-image" class="full-width" type="url" placeholder="Thumbnail URL (optional)">
+                        <label class="blog-post-public-field full-width">
+                            <input id="activity-public" type="checkbox">
+                            Public activity
+                        </label>
+                        <div class="blog-activity-editor-actions full-width">
+                            <select id="activity-preset-select">
+                                <option value="">Load preset...</option>
+                            </select>
+                            <input id="activity-preset-name" type="text" placeholder="Preset name">
+                            <button class="btn" type="button" onclick="saveActivityPreset()">Save Preset</button>
+                            <button class="logout-btn" type="button" onclick="clearCurrentActivity()">Clear</button>
+                        </div>
                     </div>
                     <div class="blog-posts" id="blog-posts"></div>
                     <div class="blog-editor" id="blog-editor">
@@ -1065,6 +1146,7 @@
         let pendingTabName = null;
         let blogPostsData = {};
         let selectedBlogTag = 'all';
+        let blogPresetsData = {};
 
         // DOM Elements
         const authOverlay = document.getElementById('auth-overlay');
@@ -1333,6 +1415,7 @@
             adminTabBar.style.display = 'none';
             editBlogButton.style.display = 'none';
             document.getElementById('blog-editor-top-actions').classList.remove('visible');
+            document.getElementById('blog-editor-activity').classList.remove('visible');
             floatingBlogSave.classList.remove('visible');
 
             if (bgVideoLayer) {
@@ -1354,8 +1437,10 @@
         function loadBlogContent() {
             blogDatabase.ref('blog').once('value').then(snapshot => {
                 const blog = snapshot.val() || {};
+                blogPresetsData = blog.presets || {};
                 document.getElementById('blog-title').innerText = blog.title || 'Welcome';
                 document.getElementById('blog-intro').innerText = blog.intro || 'No introduction has been published yet.';
+                renderBlogActivity(blog.activity);
                 renderBlogPosts(blog.posts || {});
                 prepareBlogEditor(blog);
             }).catch(error => {
@@ -1373,7 +1458,7 @@
             const postEntries = Object.entries(blogPostsData).filter(([, post]) =>
                 selectedBlogTag === 'all' || getPostTags(post).includes(selectedBlogTag)
             ).sort(([, first], [, second]) =>
-                String(second.date || '').localeCompare(String(first.date || ''))
+                getPostDateTime(second).localeCompare(getPostDateTime(first))
             );
 
             if (!postEntries.length) {
@@ -1399,7 +1484,7 @@
                 const title = document.createElement('h3');
                 title.innerText = post.title || 'Untitled post';
                 const date = document.createElement('time');
-                date.innerText = post.date || '';
+                date.innerText = `${post.date || ''}${post.time ? ` | ${post.time}` : ''}`;
                 const body = document.createElement('div');
                 body.className = 'blog-post-content';
                 renderFormattedBlogText(body, post.body || '');
@@ -1422,6 +1507,43 @@
                 }
                 postsContainer.appendChild(article);
             });
+        }
+
+        function getPostDateTime(post) {
+            return `${post.date || ''}T${post.time || '00:00'}`;
+        }
+
+        function renderBlogActivity(activity) {
+            const container = document.getElementById('blog-activity');
+            container.innerHTML = '';
+            if (!activity || !activity.action || !activity.text) return;
+
+            const wrapper = document.createElement('div');
+            wrapper.className = 'blog-activity';
+            if (activity.image) {
+                const image = document.createElement('img');
+                image.className = 'blog-activity-image';
+                image.src = activity.image;
+                image.alt = activity.text;
+                image.onerror = () => image.remove();
+                wrapper.appendChild(image);
+            }
+            const text = document.createElement('span');
+            const actionLabels = {
+                playing: 'Flair is Currently playing',
+                listening: 'Flair is Currently listening to',
+                watching: 'Flair is Currently watching',
+                reading: 'Flair is Currently reading',
+                doing: 'Flair is Currently doing',
+                Working: 'Flair is Currently working'
+            };
+            const action = actionLabels[activity.action] || 'Currently';
+            text.innerHTML = `<strong>${action}:</strong> `;
+            const description = document.createElement('span');
+            description.innerText = activity.text;
+            text.appendChild(description);
+            wrapper.appendChild(text);
+            container.appendChild(wrapper);
         }
 
         function getPostTags(post) {
@@ -1573,6 +1695,59 @@
             document.getElementById('blog-intro-input').value = blog.intro || '';
             const editorPosts = document.getElementById('blog-editor-posts');
             editorPosts.innerHTML = '';
+            const activity = blog.activity || {};
+            document.getElementById('activity-action').value = activity.action || '';
+            document.getElementById('activity-text').value = activity.text || '';
+            document.getElementById('activity-image').value = activity.image || '';
+            document.getElementById('activity-public').checked = activity.public === true;
+            updateActivityPresetOptions(blogPresetsData);
+        }
+
+        function getCurrentActivity() {
+            return {
+                action: document.getElementById('activity-action').value,
+                text: document.getElementById('activity-text').value.trim(),
+                image: document.getElementById('activity-image').value.trim(),
+                public: document.getElementById('activity-public').checked
+            };
+        }
+
+        function updateActivityPresetOptions(presets) {
+            const select = document.getElementById('activity-preset-select');
+            select.innerHTML = '<option value="">Load preset...</option>';
+            Object.keys(presets).sort().forEach(name => {
+                const option = document.createElement('option');
+                option.value = name;
+                option.innerText = name;
+                select.appendChild(option);
+            });
+            select.onchange = () => {
+                const preset = presets[select.value];
+                if (!preset) return;
+                document.getElementById('activity-action').value = preset.action || '';
+                document.getElementById('activity-text').value = preset.text || '';
+                document.getElementById('activity-image').value = preset.image || '';
+                document.getElementById('activity-public').checked = preset.public === true;
+                select.value = '';
+            };
+        }
+
+        function clearCurrentActivity() {
+            document.getElementById('activity-action').value = '';
+            document.getElementById('activity-text').value = '';
+            document.getElementById('activity-image').value = '';
+            document.getElementById('activity-public').checked = false;
+        }
+
+        function saveActivityPreset() {
+            const name = document.getElementById('activity-preset-name').value.trim();
+            if (!name) return showLoginToast('Enter a preset name', 'negative');
+            const activity = getCurrentActivity();
+            blogDatabase.ref(`blog/presets/${name}`).set(activity).then(() => {
+                document.getElementById('activity-preset-name').value = '';
+                showLoginToast('Activity preset saved');
+                loadBlogContent();
+            }).catch(() => showLoginToast('Unable to save activity preset', 'negative'));
         }
 
         function addBlogPostEditor(post = {}, postId = `post-${Date.now()}`) {
@@ -1595,6 +1770,7 @@
                 </div>
                 <input class="blog-post-title" type="text" placeholder="Post title">
                 <input class="blog-post-date" type="date">
+                <input class="blog-post-time" type="time">
                 <input class="blog-post-image-url" type="url" placeholder="Image URL (optional)">
                 <label class="blog-post-public-field">
                     <input class="blog-post-public" type="checkbox">
@@ -1605,6 +1781,7 @@
             `;
             postEditor.querySelector('.blog-post-title').value = post.title || '';
             postEditor.querySelector('.blog-post-date').value = post.date || new Date().toISOString().slice(0, 10);
+            postEditor.querySelector('.blog-post-time').value = post.time || '00:00';
             postEditor.querySelector('.blog-post-image-url').value = post.image || '';
             postEditor.querySelector('.blog-post-tags').value = getPostTags(post).join(', ');
             postEditor.querySelector('.blog-post-public').checked = post.public !== false;
@@ -1616,9 +1793,11 @@
             if (!isAdmin) return;
             const editor = document.getElementById('blog-editor');
             const topActions = document.getElementById('blog-editor-top-actions');
+            const activityEditor = document.getElementById('blog-editor-activity');
             const shouldOpen = forceState === undefined ? !editor.classList.contains('open') : forceState;
             editor.classList.toggle('open', shouldOpen);
             topActions.classList.toggle('visible', shouldOpen);
+            activityEditor.classList.toggle('visible', shouldOpen);
             loadBlogContent();
             requestAnimationFrame(updateFloatingBlogSave);
         }
@@ -1652,6 +1831,7 @@
                 posts[postEditor.dataset.postId] = {
                     title: postEditor.querySelector('.blog-post-title').value.trim(),
                     date: postEditor.querySelector('.blog-post-date').value,
+                    time: postEditor.querySelector('.blog-post-time').value,
                     image: postEditor.querySelector('.blog-post-image-url').value.trim(),
                     tags: postEditor.querySelector('.blog-post-tags').value.split(',').map(tag => tag.trim()).filter(Boolean),
                     public: postEditor.querySelector('.blog-post-public').checked,
@@ -1662,10 +1842,13 @@
             const blog = {
                 title: document.getElementById('blog-title-input').value.trim(),
                 intro: document.getElementById('blog-intro-input').value.trim(),
+                activity: getCurrentActivity(),
+                presets: blogPresetsData,
                 posts
             };
 
             blogDatabase.ref('blog').set(blog).then(() => {
+                renderBlogActivity(blog.activity);
                 renderBlogPosts(blog.posts);
                 document.getElementById('blog-title').innerText = blog.title || 'Welcome';
                 document.getElementById('blog-intro').innerText = blog.intro || 'No introduction has been published yet.';
