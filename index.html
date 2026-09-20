@@ -1021,6 +1021,7 @@
                             <select id="activity-preset-select">
                                 <option value="">Load preset...</option>
                             </select>
+                            <button class="btn-danger" type="button" onclick="deleteActivityPreset()">Delete Preset</button>
                             <input id="activity-preset-name" type="text" placeholder="Preset name">
                             <button class="btn" type="button" onclick="saveActivityPreset()">Save Preset</button>
                             <button class="logout-btn" type="button" onclick="clearCurrentActivity()">Clear</button>
@@ -1714,6 +1715,7 @@
 
         function updateActivityPresetOptions(presets) {
             const select = document.getElementById('activity-preset-select');
+            const selectedPreset = select.value;
             select.innerHTML = '<option value="">Load preset...</option>';
             Object.keys(presets).sort().forEach(name => {
                 const option = document.createElement('option');
@@ -1728,8 +1730,8 @@
                 document.getElementById('activity-text').value = preset.text || '';
                 document.getElementById('activity-image').value = preset.image || '';
                 document.getElementById('activity-public').checked = preset.public === true;
-                select.value = '';
             };
+            select.value = presets[selectedPreset] ? selectedPreset : '';
         }
 
         function clearCurrentActivity() {
@@ -1748,6 +1750,19 @@
                 showLoginToast('Activity preset saved');
                 loadBlogContent();
             }).catch(() => showLoginToast('Unable to save activity preset', 'negative'));
+        }
+
+        function deleteActivityPreset() {
+            if (!isAdmin) return;
+            const presetSelect = document.getElementById('activity-preset-select');
+            const name = presetSelect.value;
+            if (!name) return showLoginToast('Select a preset to delete', 'negative');
+            if (!confirm(`Delete the activity preset '${name}'?`)) return;
+
+            blogDatabase.ref(`blog/presets/${name}`).remove().then(() => {
+                showLoginToast('Activity preset deleted');
+                loadBlogContent();
+            }).catch(() => showLoginToast('Unable to delete activity preset', 'negative'));
         }
 
         function addBlogPostEditor(post = {}, postId = `post-${Date.now()}`) {
