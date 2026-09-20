@@ -55,7 +55,7 @@
         const TARGET_URL = "https://flairdiva.github.io/me/calander/";
         
         // Hub main page for fallback login
-        const HUB_LOGIN_URL = "./index.html"; 
+        const HUB_LOGIN_URL = "../../index.html"; 
 
         window.addEventListener('DOMContentLoaded', () => {
             const savedUser = localStorage.getItem('flairs_hub_user');
@@ -74,6 +74,7 @@
                 
                 // Redirect back to main hub for login if credentials are missing
                 setTimeout(() => {
+                    sessionStorage.setItem('flairs_login_redirect_notice', 'true');
                     window.location.href = HUB_LOGIN_URL;
                 }, 1200);
             }

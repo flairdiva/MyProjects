@@ -91,6 +91,17 @@
             pointer-events: none;
         }
 
+        #login-toast.login-required {
+            background: rgba(255, 191, 191, 0.97);
+            border-color: #e74f4f;
+            color: rgb(255, 59, 59);
+            box-shadow: 0 10px 25px rgba(231, 185, 79, 0.25);
+        }
+
+        #login-toast.login-required span b {
+            color: #7a1f1f;
+        }
+
         #login-toast.show {
             top: 20px;
             opacity: 1;
@@ -616,6 +627,7 @@
         const bgImageLayer = document.getElementById('bg-image-layer');
         const bgVideoLayer = document.getElementById('bg-video-layer');
         const loginToast = document.getElementById('login-toast');
+        const toastIcon = document.querySelector('#login-toast .toast-icon');
         const toastMessage = document.getElementById('toast-message');
 
         // Setup background media source
@@ -669,8 +681,10 @@
         }
 
         // --- SHOW TOAST POPUP ---
-        function showLoginToast(message) {
+        function showLoginToast(message, variant = '') {
             toastMessage.innerHTML = message;
+            toastIcon.innerText = variant === 'login-required' ? '❌' : '✅';
+            loginToast.classList.toggle('login-required', variant === 'login-required');
             loginToast.classList.add('show');
             setTimeout(() => {
                 loginToast.classList.remove('show');
@@ -696,6 +710,12 @@
             const urlParams = new URLSearchParams(window.location.search);
             const userParam = urlParams.get('user') || urlParams.get('flair');
             const pinParam = urlParams.get('pin');
+            const wasRedirectedFromLoginRequiredPage = sessionStorage.getItem('flairs_login_redirect_notice') === 'true';
+
+            if (wasRedirectedFromLoginRequiredPage) {
+                sessionStorage.removeItem('flairs_login_redirect_notice');
+                showLoginToast("You aren't signed into your account yet. You cannot access that link until you log in.", 'login-required');
+            }
 
             if (userParam && pinParam) {
                 document.getElementById('username').value = userParam;
