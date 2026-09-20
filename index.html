@@ -70,48 +70,57 @@
         /* --- ANIMATED TOAST NOTIFICATION --- */
         #login-toast {
             position: fixed;
-            top: -80px;
+            top: 20px;
             left: 50%;
             transform: translateX(-50%);
-            background: rgba(255, 255, 255, 0.95);
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            pointer-events: none;
+        }
+
+        .toast-notification {
+            background: rgba(240, 255, 240, 0.95);
             backdrop-filter: blur(10px);
             border: 2px solid var(--accent-pink);
             color: var(--text-main);
             padding: 12px 24px;
             border-radius: 30px;
             box-shadow: 0 10px 25px rgba(255, 133, 162, 0.25);
-            z-index: 2000;
             font-size: 0.95rem;
             font-weight: 600;
             display: flex;
             align-items: center;
             gap: 10px;
-            transition: top 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.4s ease;
             opacity: 0;
-            pointer-events: none;
+            transform: translateY(-15px);
+            transition: opacity 0.4s ease, transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+            will-change: transform, opacity;
         }
 
-        #login-toast.login-required {
+        .toast-notification.negative {
             background: rgba(255, 191, 191, 0.97);
             border-color: #e74f4f;
             color: rgb(255, 59, 59);
             box-shadow: 0 10px 25px rgba(231, 185, 79, 0.25);
         }
 
-        #login-toast.login-required span b {
+        .toast-notification.negative span b {
             color: #7a1f1f;
         }
 
-        #login-toast.show {
-            top: 20px;
+        .toast-notification.show {
             opacity: 1;
+            transform: translateY(0);
         }
 
-        #login-toast .toast-icon {
+        .toast-notification .toast-icon {
             font-size: 1.2rem;
         }
 
-        #login-toast span b {
+        .toast-notification span b {
             color: var(--accent-pink);
             text-transform: capitalize;
         }
@@ -315,10 +324,345 @@
             display: none;
             flex-direction: column;
             gap: 20px;
+            width: 100%;
         }
 
         .tab-content.active {
             display: flex;
+        }
+
+        .tab-content-viewport {
+            position: relative;
+            width: 100%;
+            overflow: hidden;
+            transition: height 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        .tab-content.sliding {
+            display: flex;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+            will-change: transform;
+        }
+
+        .tab-content.sliding.incoming.from-left {
+            transform: translateX(-100%);
+        }
+
+        .tab-content.sliding.incoming.from-right {
+            transform: translateX(100%);
+        }
+
+        .tab-content.sliding.outgoing.to-left,
+        .tab-content.sliding.outgoing.to-right {
+            transform: translateX(0);
+        }
+
+        .tab-content.sliding.outgoing.to-left.is-moving {
+            transform: translateX(-100%);
+        }
+
+        .tab-content.sliding.outgoing.to-right.is-moving {
+            transform: translateX(100%);
+        }
+
+        .tab-content.sliding.incoming.is-moving {
+            transform: translateX(0);
+        }
+
+        /* --- BLOG CONTENT TAB --- */
+        .blog-toolbar {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .blog-page {
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(8px);
+            border: 1px solid var(--light-pink);
+            border-radius: 20px;
+            padding: 28px;
+            box-shadow: 0 10px 25px rgba(255, 133, 162, 0.08);
+        }
+
+        .blog-page h2 {
+            color: var(--accent-pink);
+            font-size: 1.8rem;
+            margin-bottom: 8px;
+        }
+
+        .blog-intro {
+            color: var(--sub-text);
+            line-height: 1.5;
+            margin-bottom: 24px;
+        }
+
+        .blog-posts {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .blog-filter-bar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 18px;
+        }
+
+        .blog-filter-bar label {
+            color: var(--sub-text);
+            font-size: 0.85rem;
+            font-weight: bold;
+        }
+
+        .blog-filter-bar select {
+            background: #fff;
+            border: 1px solid var(--light-pink);
+            border-radius: 8px;
+            padding: 8px 10px;
+            color: var(--text-main);
+        }
+
+        .blog-post {
+            border-left: 4px solid var(--accent-pink);
+            background: rgba(255, 228, 233, 0.35);
+            padding: 16px 18px;
+            border-radius: 0 12px 12px 0;
+        }
+
+        .blog-post h3 {
+            color: var(--accent-pink);
+            margin-bottom: 5px;
+        }
+
+        .blog-post-image {
+            display: block;
+            width: 100%;
+            max-height: 360px;
+            object-fit: cover;
+            border-radius: 10px;
+            margin-bottom: 14px;
+            cursor: zoom-in;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .blog-post-image:hover {
+            transform: scale(1.01);
+            box-shadow: 0 8px 20px rgba(255, 133, 162, 0.2);
+        }
+
+        .blog-image-lightbox {
+            position: fixed;
+            inset: 0;
+            z-index: 3000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 30px;
+            background: rgba(30, 25, 28, 0.82);
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.25s ease, visibility 0.25s ease;
+            cursor: zoom-out;
+        }
+
+        .blog-image-lightbox.open {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .blog-image-lightbox img {
+            max-width: min(1100px, 95vw);
+            max-height: 90vh;
+            object-fit: contain;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+            transform: scale(0.94);
+            transition: transform 0.25s ease;
+            cursor: default;
+        }
+
+        .blog-image-lightbox.open img {
+            transform: scale(1);
+        }
+
+        .blog-post time {
+            color: var(--sub-text);
+            font-size: 0.78rem;
+        }
+
+        .blog-post p {
+            line-height: 1.55;
+            margin-top: 10px;
+        }
+
+        .blog-post-content {
+            margin-top: 10px;
+        }
+
+        .blog-post-content h4,
+        .blog-post-content h5,
+        .blog-post-content h6 {
+            color: var(--accent-pink);
+            margin: 14px 0 6px;
+        }
+
+        .blog-post-content h4 {
+            font-size: 1.2rem;
+        }
+
+        .blog-post-content h5 {
+            font-size: 1.1rem;
+        }
+
+        .blog-post-content h6 {
+            font-size: 1.05rem;
+        }
+
+        .blog-post-content strong {
+            color: var(--accent-pink);
+        }
+
+        .blog-post-content .spoiler {
+            background: var(--text-main);
+            color: transparent;
+            border-radius: 4px;
+            padding: 0 4px;
+            cursor: pointer;
+        }
+
+        .blog-post-content .spoiler:hover,
+        .blog-post-content .spoiler:focus {
+            color: #fff;
+        }
+
+        .blog-post-content del {
+            opacity: 0.7;
+        }
+
+        .blog-post-content pre {
+            background: #2f2f3a;
+            color: #fff;
+            border-radius: 8px;
+            padding: 12px;
+            overflow-x: auto;
+            margin: 10px 0;
+            white-space: pre-wrap;
+        }
+
+        .blog-post-content code {
+            background: rgba(74, 74, 74, 0.12);
+            border-radius: 4px;
+            padding: 2px 4px;
+        }
+
+        .blog-post-content pre code {
+            background: transparent;
+            padding: 0;
+        }
+
+        .blog-post-content a {
+            color: var(--text-main);
+            font-weight: bold;
+        }
+
+        .blog-post-tags-display {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 14px;
+        }
+
+        .blog-post-tag {
+            background: var(--light-pink);
+            color: var(--accent-pink);
+            border-radius: 12px;
+            font-size: 0.75rem;
+            padding: 4px 9px;
+        }
+
+        .blog-editor {
+            display: none;
+            flex-direction: column;
+            gap: 14px;
+            margin-top: 16px;
+        }
+
+        .blog-editor.open {
+            display: flex;
+        }
+
+        .blog-editor input,
+        .blog-editor textarea {
+            width: 100%;
+            border: 1px solid var(--light-pink);
+            border-radius: 8px;
+            padding: 10px;
+            color: var(--text-main);
+            font: inherit;
+            resize: vertical;
+        }
+
+        .blog-editor textarea {
+            min-height: 110px;
+        }
+
+        .blog-editor-post {
+            background: rgba(255, 250, 250, 0.9);
+            border: 1px solid var(--light-pink);
+            border-radius: 12px;
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .blog-editor-post-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .blog-format-help {
+            background: rgba(255, 228, 233, 0.45);
+            border: 1px solid var(--light-pink);
+            border-radius: 8px;
+            color: var(--sub-text);
+            font-size: 0.8rem;
+            line-height: 1.6;
+            padding: 10px;
+        }
+
+        .blog-format-help code {
+            color: var(--text-main);
+        }
+
+        .blog-post-tags {
+            width: 100%;
+        }
+
+        .blog-post-public-field {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+        }
+
+        .blog-post-public-field input {
+            width: auto;
+        }
+
+        .blog-editor-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
         }
 
         /* --- PROJECT GRID --- */
@@ -471,9 +815,10 @@
     <video id="bg-video-layer" loop playsinline></video>
 
     <!-- TOP CENTER TOAST POPUP -->
-    <div id="login-toast">
-        <span class="toast-icon">✅</span>
-        <span id="toast-message">Welcome back!</span>
+    <div id="login-toast"></div>
+
+    <div class="blog-image-lightbox" id="blog-image-lightbox" role="dialog" aria-modal="true" aria-label="Expanded blog image">
+        <img id="blog-lightbox-image" alt="">
     </div>
 
     <!-- AUTHENTICATION OVERLAY -->
@@ -514,17 +859,53 @@
 
         <!-- TAB NAVIGATION (Admin Only) -->
         <div class="tab-bar" id="admin-tab-bar" style="display: none;">
-            <button class="tab-btn active" onclick="switchTab('portal')">Projects Portal</button>
-            <button class="tab-btn" id="managementTabBtn" onclick="switchTab('management')">Management Panel</button>
+            <button class="tab-btn active" data-tab="portal" onclick="switchTab('portal')">Projects Portal</button>
+            <button class="tab-btn" data-tab="content" onclick="switchTab('content')">Content</button>
+            <button class="tab-btn" id="managementTabBtn" data-tab="management" onclick="switchTab('management')">Management Panel</button>
         </div>
 
-        <!-- TAB 1: PROJECTS PORTAL -->
-        <div class="tab-content active" id="tab-portal">
-            <div class="projects-grid" id="projects-grid"></div>
-        </div>
+        <div class="tab-content-viewport" id="tab-content-viewport">
+            <!-- TAB 1: PROJECTS PORTAL -->
+            <div class="tab-content active" id="tab-portal">
+                <div class="projects-grid" id="projects-grid"></div>
+            </div>
 
-        <!-- TAB 2: MANAGEMENT PANEL -->
-        <div class="tab-content" id="tab-management">
+            <!-- TAB 2: CONTENT -->
+            <div class="tab-content" id="tab-content">
+                <div class="blog-toolbar">
+                    <button class="btn" id="edit-blog-btn" onclick="toggleBlogEditor()" style="display: none;">Edit</button>
+                </div>
+                <div class="blog-page">
+                    <h2 id="blog-title">Loading blog...</h2>
+                    <p class="blog-intro" id="blog-intro"></p>
+                    <div class="blog-filter-bar">
+                        <label for="blog-tag-filter">Filter:</label>
+                        <select id="blog-tag-filter" onchange="filterBlogPosts(this.value)">
+                            <option value="all">All tags</option>
+                        </select>
+                    </div>
+                    <div class="blog-posts" id="blog-posts"></div>
+                    <div class="blog-editor" id="blog-editor">
+                        <input id="blog-title-input" type="text" placeholder="Blog title">
+                        <textarea id="blog-intro-input" placeholder="Short introduction"></textarea>
+                        <div class="blog-format-help">
+                            <strong>Formatting</strong><br>
+                            Headers: <code># Heading</code>, <code>## Heading</code>, <code>### Heading</code><br>
+                            <code>**bold**</code> <code>||spoiler||</code> <code>~~strikethrough~~</code><br>
+                            <code>```code```</code> <code>(link text)[https://example.com]</code>
+                        </div>
+                        <div id="blog-editor-posts"></div>
+                        <div class="blog-editor-actions">
+                            <button class="btn" onclick="addBlogPostEditor()">Add Post</button>
+                            <button class="btn" onclick="saveBlogContent()">Save</button>
+                            <button class="logout-btn" onclick="toggleBlogEditor(false)">Cancel</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 3: MANAGEMENT PANEL -->
+            <div class="tab-content" id="tab-management">
             <h2 class="section-header">Calendar Settings & Management</h2>
 
             <div class="admin-box">
@@ -569,6 +950,7 @@
                     </table>
                 </div>
             </div>
+            </div>
         </div>
     </div>
 
@@ -610,12 +992,18 @@
         };
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
+        const blogDatabase = firebase.database(firebase.initializeApp({
+            databaseURL: "https://flairdiva-blog-default-rtdb.firebaseio.com"
+        }, 'blog'));
 
         // Global User State
         let currentUser = "";
         let currentPin = "";
         let isAuthenticated = false;
         let isAdmin = false;
+        let pendingTabName = null;
+        let blogPostsData = {};
+        let selectedBlogTag = 'all';
 
         // DOM Elements
         const authOverlay = document.getElementById('auth-overlay');
@@ -627,8 +1015,9 @@
         const bgImageLayer = document.getElementById('bg-image-layer');
         const bgVideoLayer = document.getElementById('bg-video-layer');
         const loginToast = document.getElementById('login-toast');
-        const toastIcon = document.querySelector('#login-toast .toast-icon');
-        const toastMessage = document.getElementById('toast-message');
+        const editBlogButton = document.getElementById('edit-blog-btn');
+        const blogImageLightbox = document.getElementById('blog-image-lightbox');
+        const blogLightboxImage = document.getElementById('blog-lightbox-image');
 
         // Setup background media source
         function setupBackgroundMedia() {
@@ -681,28 +1070,90 @@
         }
 
         // --- SHOW TOAST POPUP ---
-        function showLoginToast(message, variant = '') {
-            toastMessage.innerHTML = message;
-            toastIcon.innerText = variant === 'login-required' ? '❌' : '✅';
-            loginToast.classList.toggle('login-required', variant === 'login-required');
-            loginToast.classList.add('show');
+        function showLoginToast(message, variant = 'positive') {
+            const isNegative = variant === 'negative';
+            const existingToasts = [...loginToast.children];
+            const previousPositions = new Map(
+                existingToasts.map(existingToast => [existingToast, existingToast.getBoundingClientRect().top])
+            );
+            const toast = document.createElement('div');
+            toast.className = `toast-notification${isNegative ? ' negative' : ''}`;
+            toast.innerHTML = `
+                <span class="toast-icon">${isNegative ? '❌' : '✅'}</span>
+                <span>${message}</span>
+            `;
+            loginToast.prepend(toast);
+
+            existingToasts.forEach(existingToast => {
+                const movement = previousPositions.get(existingToast) - existingToast.getBoundingClientRect().top;
+                if (!movement) return;
+
+                existingToast.style.transition = 'none';
+                existingToast.style.transform = `translateY(${movement}px)`;
+                requestAnimationFrame(() => {
+                    existingToast.style.transition = '';
+                    existingToast.style.transform = 'translateY(0)';
+                });
+            });
+
+            requestAnimationFrame(() => toast.classList.add('show'));
             setTimeout(() => {
-                loginToast.classList.remove('show');
+                toast.classList.remove('show');
+                toast.addEventListener('transitionend', () => toast.remove(), { once: true });
             }, 4000);
         }
 
         // --- TAB SWITCHING ---
         function switchTab(tabName) {
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            const tabOrder = ['management', 'content', 'portal'];
+            if (!tabOrder.includes(tabName)) return;
+            if (tabName === 'management' && !isAdmin) return;
 
-            if (tabName === 'portal') {
-                document.querySelectorAll('.tab-btn')[0].classList.add('active');
-                document.getElementById('tab-portal').classList.add('active');
-            } else if (tabName === 'management' && isAdmin) {
-                document.getElementById('managementTabBtn').classList.add('active');
-                document.getElementById('tab-management').classList.add('active');
+            const viewport = document.getElementById('tab-content-viewport');
+            if (viewport.dataset.animating === 'true') {
+                pendingTabName = tabName;
+                return;
             }
+
+            const currentTab = viewport.querySelector('.tab-content.active');
+            const nextTab = document.getElementById(`tab-${tabName}`);
+
+            if (!currentTab || currentTab === nextTab) return;
+
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`.tab-btn[data-tab="${tabName}"]`).classList.add('active');
+
+            const currentTabName = currentTab.id.replace('tab-', '');
+            const movingLeft = tabOrder.indexOf(tabName) < tabOrder.indexOf(currentTabName);
+            const incomingDirection = movingLeft ? 'from-left' : 'from-right';
+            const outgoingDirection = movingLeft ? 'to-right' : 'to-left';
+            const currentHeight = currentTab.offsetHeight;
+
+            viewport.dataset.animating = 'true';
+            viewport.style.height = `${currentHeight}px`;
+            currentTab.classList.remove('active');
+            currentTab.classList.add('sliding', 'outgoing', outgoingDirection);
+            nextTab.classList.add('sliding', 'incoming', incomingDirection);
+
+            const nextHeight = nextTab.scrollHeight;
+            requestAnimationFrame(() => {
+                viewport.style.height = `${nextHeight}px`;
+                currentTab.classList.add('is-moving');
+                nextTab.classList.add('is-moving');
+            });
+
+            setTimeout(() => {
+                currentTab.className = 'tab-content';
+                nextTab.className = 'tab-content active';
+                viewport.style.height = '';
+                delete viewport.dataset.animating;
+
+                const queuedTabName = pendingTabName;
+                pendingTabName = null;
+                if (queuedTabName && queuedTabName !== tabName) {
+                    switchTab(queuedTabName);
+                }
+            }, 500);
         }
 
         // --- AUTO-LOGIN INITIALIZATION ---
@@ -714,7 +1165,7 @@
 
             if (wasRedirectedFromLoginRequiredPage) {
                 sessionStorage.removeItem('flairs_login_redirect_notice');
-                showLoginToast("You aren't signed into your account yet. You cannot access that link until you log in.", 'login-required');
+                showLoginToast("You aren't signed into your account yet. You cannot access that link until you log in.", 'negative');
             }
 
             if (userParam && pinParam) {
@@ -775,19 +1226,25 @@
 
                 if (isAdmin) {
                     adminTabBar.style.display = 'flex';
+                    document.getElementById('managementTabBtn').style.display = 'inline-block';
                     listenUserManagementData();
                 } else {
-                    adminTabBar.style.display = 'none';
+                    adminTabBar.style.display = 'flex';
+                    document.getElementById('managementTabBtn').style.display = 'none';
                 }
 
                 setupBackgroundMedia();
                 renderProjects();
+                loadBlogContent();
+                editBlogButton.style.display = isAdmin ? 'inline-block' : 'none';
 
                 // Trigger Toast according to login method
                 if (loginSource === 'session') {
                     showLoginToast(`Logged in as <b>${currentUser}</b> remembered from previous session`);
                 } else if (loginSource === 'link') {
                     showLoginToast(`Automaticly logged in as <b>${currentUser}</b> via link`);
+                } else if (loginSource === 'manual') {
+                    showLoginToast(`Successfully logged in as <b>${currentUser}</b>`);
                 }
 
             } catch (err) {
@@ -797,6 +1254,7 @@
         }
 
         function handleLogout() {
+            showLoginToast(`Successfully logged out of account: <b>${currentUser}</b>`);
             clearStoredCredentials();
             isAuthenticated = false;
             isAdmin = false;
@@ -808,6 +1266,8 @@
             authError.style.display = 'none';
             hubContainer.style.display = 'none';
             authOverlay.style.display = 'flex';
+            adminTabBar.style.display = 'none';
+            editBlogButton.style.display = 'none';
 
             if (bgVideoLayer) {
                 bgVideoLayer.pause();
@@ -821,8 +1281,295 @@
         }
 
         function showAuthError(msg) {
-            authError.innerText = msg;
-            authError.style.display = 'block';
+            showLoginToast(msg, 'negative');
+        }
+
+        // --- BLOG CONTENT ---
+        function loadBlogContent() {
+            blogDatabase.ref('blog').once('value').then(snapshot => {
+                const blog = snapshot.val() || {};
+                document.getElementById('blog-title').innerText = blog.title || 'Welcome';
+                document.getElementById('blog-intro').innerText = blog.intro || 'No introduction has been published yet.';
+                renderBlogPosts(blog.posts || {});
+                prepareBlogEditor(blog);
+            }).catch(error => {
+                console.error('Blog database error:', error);
+                document.getElementById('blog-title').innerText = 'Unable to load blog';
+                document.getElementById('blog-intro').innerText = 'Check the blog database connection and rules.';
+            });
+        }
+
+        function renderBlogPosts(posts) {
+            blogPostsData = posts || {};
+            const postsContainer = document.getElementById('blog-posts');
+            postsContainer.innerHTML = '';
+            updateBlogTagFilter(blogPostsData);
+            const postEntries = Object.entries(blogPostsData).filter(([, post]) =>
+                selectedBlogTag === 'all' || getPostTags(post).includes(selectedBlogTag)
+            ).sort(([, first], [, second]) =>
+                String(second.date || '').localeCompare(String(first.date || ''))
+            );
+
+            if (!postEntries.length) {
+                postsContainer.innerText = selectedBlogTag === 'all'
+                    ? 'No posts have been published yet.'
+                    : 'No posts match this tag.';
+                return;
+            }
+
+            postEntries.forEach(([, post]) => {
+                const article = document.createElement('article');
+                article.className = 'blog-post';
+                if (post.image) {
+                    const image = document.createElement('img');
+                    image.className = 'blog-post-image';
+                    image.src = post.image;
+                    image.alt = post.title || 'Blog post image';
+                    image.loading = 'lazy';
+                    image.onerror = () => image.remove();
+                    image.addEventListener('click', () => openBlogImageLightbox(image));
+                    article.appendChild(image);
+                }
+                const title = document.createElement('h3');
+                title.innerText = post.title || 'Untitled post';
+                const date = document.createElement('time');
+                date.innerText = post.date || '';
+                const body = document.createElement('div');
+                body.className = 'blog-post-content';
+                renderFormattedBlogText(body, post.body || '');
+                article.append(title, date, body);
+                const tags = getPostTags(post);
+                if (tags.length) {
+                    const tagList = document.createElement('div');
+                    tagList.className = 'blog-post-tags-display';
+                    tags.forEach(tag => {
+                        const tagElement = document.createElement('span');
+                        tagElement.className = 'blog-post-tag';
+                        tagElement.innerText = tag;
+                        tagList.appendChild(tagElement);
+                    });
+                    article.appendChild(tagList);
+                }
+                postsContainer.appendChild(article);
+            });
+        }
+
+        function getPostTags(post) {
+            if (Array.isArray(post.tags)) return post.tags;
+            return String(post.tags || '').split(',').map(tag => tag.trim()).filter(Boolean);
+        }
+
+        function updateBlogTagFilter(posts) {
+            const filter = document.getElementById('blog-tag-filter');
+            const tags = [...new Set(Object.values(posts).flatMap(getPostTags))].sort((first, second) =>
+                first.localeCompare(second)
+            );
+            filter.innerHTML = '';
+            const allOption = document.createElement('option');
+            allOption.value = 'all';
+            allOption.innerText = 'All tags';
+            filter.appendChild(allOption);
+            tags.forEach(tag => {
+                const option = document.createElement('option');
+                option.value = tag;
+                option.innerText = tag;
+                filter.appendChild(option);
+            });
+            if (selectedBlogTag !== 'all' && !tags.includes(selectedBlogTag)) selectedBlogTag = 'all';
+            filter.value = selectedBlogTag;
+        }
+
+        function filterBlogPosts(tag) {
+            selectedBlogTag = tag;
+            renderBlogPosts(blogPostsData);
+        }
+
+        function openBlogImageLightbox(image) {
+            blogLightboxImage.src = image.src;
+            blogLightboxImage.alt = image.alt;
+            blogImageLightbox.classList.add('open');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeBlogImageLightbox() {
+            blogImageLightbox.classList.remove('open');
+            document.body.style.overflow = '';
+        }
+
+        blogImageLightbox.addEventListener('click', event => {
+            if (event.target === blogImageLightbox) closeBlogImageLightbox();
+        });
+
+        document.addEventListener('keydown', event => {
+            if (event.key === 'Escape') closeBlogImageLightbox();
+        });
+
+        function renderFormattedBlogText(container, text) {
+            const lines = String(text).split(/\r?\n/);
+            let codeLines = null;
+
+            lines.forEach(line => {
+                if (line.trim() === '```') {
+                    if (codeLines === null) {
+                        codeLines = [];
+                    } else {
+                        const codeBlock = document.createElement('pre');
+                        const code = document.createElement('code');
+                        code.innerText = codeLines.join('\n');
+                        codeBlock.appendChild(code);
+                        container.appendChild(codeBlock);
+                        codeLines = null;
+                    }
+                    return;
+                }
+
+                if (codeLines !== null) {
+                    codeLines.push(line);
+                    return;
+                }
+
+                const headerMatch = line.match(/^(#{1,3})\s+(.+)$/);
+                if (headerMatch) {
+                    const heading = document.createElement(`h${headerMatch[1].length + 3}`);
+                    appendFormattedInlineContent(heading, headerMatch[2]);
+                    container.appendChild(heading);
+                    return;
+                }
+
+                appendFormattedInlineContent(container, line);
+                container.appendChild(document.createElement('br'));
+            });
+
+            if (codeLines !== null) {
+                const codeBlock = document.createElement('pre');
+                const code = document.createElement('code');
+                code.innerText = codeLines.join('\n');
+                codeBlock.appendChild(code);
+                container.appendChild(codeBlock);
+            }
+        }
+
+        function appendFormattedInlineContent(container, text) {
+            const pattern = /\*\*([^*]+)\*\*|\|\|([^|]+)\|\||~~([^~]+)~~|```([^`]+)```|\(([^)]+)\)\[([^\]]+)\]/g;
+            let lastIndex = 0;
+            let match;
+
+            while ((match = pattern.exec(text)) !== null) {
+                if (match.index > lastIndex) {
+                    container.appendChild(document.createTextNode(text.slice(lastIndex, match.index)));
+                }
+
+                if (match[1]) {
+                    const bold = document.createElement('strong');
+                    bold.innerText = match[1];
+                    container.appendChild(bold);
+                } else if (match[2]) {
+                    const spoiler = document.createElement('span');
+                    spoiler.className = 'spoiler';
+                    spoiler.tabIndex = 0;
+                    spoiler.innerText = match[2];
+                    container.appendChild(spoiler);
+                } else if (match[3]) {
+                    const strike = document.createElement('del');
+                    strike.innerText = match[3];
+                    container.appendChild(strike);
+                } else if (match[4]) {
+                    const code = document.createElement('code');
+                    code.innerText = match[4];
+                    container.appendChild(code);
+                } else {
+                    const link = document.createElement('a');
+                    link.innerText = match[5];
+                    link.href = /^(https?:\/\/|mailto:)/i.test(match[6]) ? match[6] : '#';
+                    if (link.href !== '#') {
+                        link.target = '_blank';
+                        link.rel = 'noopener noreferrer';
+                    }
+                    container.appendChild(link);
+                }
+                lastIndex = pattern.lastIndex;
+            }
+
+            if (lastIndex < text.length) {
+                container.appendChild(document.createTextNode(text.slice(lastIndex)));
+            }
+        }
+
+        function prepareBlogEditor(blog) {
+            document.getElementById('blog-title-input').value = blog.title || '';
+            document.getElementById('blog-intro-input').value = blog.intro || '';
+            const editorPosts = document.getElementById('blog-editor-posts');
+            editorPosts.innerHTML = '';
+            Object.entries(blog.posts || {}).forEach(([postId, post]) => addBlogPostEditor(post, postId));
+        }
+
+        function addBlogPostEditor(post = {}, postId = `post-${Date.now()}`) {
+            const editorPosts = document.getElementById('blog-editor-posts');
+            const postEditor = document.createElement('div');
+            postEditor.className = 'blog-editor-post';
+            postEditor.dataset.postId = postId;
+            postEditor.innerHTML = `
+                <div class="blog-editor-post-header">
+                    <strong>Post</strong>
+                    <button class="btn-danger" type="button" onclick="this.closest('.blog-editor-post').remove()">Remove</button>
+                </div>
+                <input class="blog-post-title" type="text" placeholder="Post title">
+                <input class="blog-post-date" type="date">
+                <input class="blog-post-image-url" type="url" placeholder="Image URL (optional)">
+                <label class="blog-post-public-field">
+                    <input class="blog-post-public" type="checkbox">
+                    Public
+                </label>
+                <textarea class="blog-post-body" placeholder="Post content"></textarea>
+                <input class="blog-post-tags" type="text" placeholder="Tags, separated by commas">
+            `;
+            postEditor.querySelector('.blog-post-title').value = post.title || '';
+            postEditor.querySelector('.blog-post-date').value = post.date || new Date().toISOString().slice(0, 10);
+            postEditor.querySelector('.blog-post-image-url').value = post.image || '';
+            postEditor.querySelector('.blog-post-tags').value = getPostTags(post).join(', ');
+            postEditor.querySelector('.blog-post-public').checked = post.public !== false;
+            postEditor.querySelector('.blog-post-body').value = post.body || '';
+            editorPosts.appendChild(postEditor);
+        }
+
+        function toggleBlogEditor(forceState) {
+            if (!isAdmin) return;
+            const editor = document.getElementById('blog-editor');
+            const shouldOpen = forceState === undefined ? !editor.classList.contains('open') : forceState;
+            editor.classList.toggle('open', shouldOpen);
+            if (shouldOpen) loadBlogContent();
+        }
+
+        function saveBlogContent() {
+            if (!isAdmin) return;
+            const posts = {};
+            document.querySelectorAll('.blog-editor-post').forEach(postEditor => {
+                posts[postEditor.dataset.postId] = {
+                    title: postEditor.querySelector('.blog-post-title').value.trim(),
+                    date: postEditor.querySelector('.blog-post-date').value,
+                    image: postEditor.querySelector('.blog-post-image-url').value.trim(),
+                    tags: postEditor.querySelector('.blog-post-tags').value.split(',').map(tag => tag.trim()).filter(Boolean),
+                    public: postEditor.querySelector('.blog-post-public').checked,
+                    body: postEditor.querySelector('.blog-post-body').value.trim()
+                };
+            });
+
+            const blog = {
+                title: document.getElementById('blog-title-input').value.trim(),
+                intro: document.getElementById('blog-intro-input').value.trim(),
+                posts
+            };
+
+            blogDatabase.ref('blog').set(blog).then(() => {
+                renderBlogPosts(blog.posts);
+                document.getElementById('blog-title').innerText = blog.title || 'Welcome';
+                document.getElementById('blog-intro').innerText = blog.intro || 'No introduction has been published yet.';
+                toggleBlogEditor(false);
+                showLoginToast('Blog updated successfully');
+            }).catch(error => {
+                console.error('Blog save error:', error);
+                showLoginToast('Unable to save blog changes', 'negative');
+            });
         }
 
         // --- RENDER HUB PROJECTS ---
@@ -933,10 +1680,10 @@
             if (inputElem) {
                 inputElem.select();
                 navigator.clipboard.writeText(inputElem.value).then(() => {
-                    alert(`URL copied to clipboard!`);
+                    showLoginToast(`URL copied to clipboard!`);
                 }).catch(() => {
                     document.execCommand('copy');
-                    alert(`URL copied to clipboard!`);
+                    showLoginToast(`URL copied to clipboard!`);
                 });
             }
         }
