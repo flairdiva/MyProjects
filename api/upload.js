@@ -12,8 +12,8 @@ export default async function handler(req, res) {
     }
 
     // Your GitHub repository details
-    const owner = 'YOUR_GITHUB_USERNAME';
-    const repo = 'YOUR_REPOSITORY_NAME';
+    const owner = 'flairdiva';
+    const repo = 'MyProjects';
     const branch = 'main'; // or your default branch
     const path = `uploads/${filename}`; // Folder path inside your repo
 
