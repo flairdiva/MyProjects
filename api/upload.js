@@ -11,9 +11,11 @@ export default async function handler(req, res) {
     }
 
     const owner = 'flairdiva';
-    const repo = 'imageupload';
-    const branch = 'main';
-    const path = `uploads/${filename}`;
+    const repo = 'MyProjects';
+    const branch = 'main'; // or your default branch
+    const path = `uploads/${filename}`; // Folder path inside your repo.
+
+    // GitHub API URL for repository contents
     const url = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
 
     const token = process.env.GITHUB_PAT;
