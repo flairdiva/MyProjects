@@ -58,8 +58,21 @@
         const HUB_LOGIN_URL = "../../index.html"; 
 
         window.addEventListener('DOMContentLoaded', () => {
-            const savedUser = localStorage.getItem('flairs_hub_user');
-            const savedPin = localStorage.getItem('flairs_hub_pin');
+            const urlParams = new URLSearchParams(window.location.search);
+            const queryUser = urlParams.get('user') || urlParams.get('flair');
+            const queryPin = urlParams.get('pin');
+            let savedUser = localStorage.getItem('flairs_hub_user');
+            let savedPin = localStorage.getItem('flairs_hub_pin');
+
+            if (queryUser && queryPin) {
+                savedUser = queryUser.trim().toLowerCase();
+                savedPin = queryPin.trim();
+
+                if (savedUser && savedPin) {
+                    localStorage.setItem('flairs_hub_user', savedUser);
+                    localStorage.setItem('flairs_hub_pin', savedPin);
+                }
+            }
 
             if (savedUser && savedPin) {
                 document.getElementById('status-msg').innerText = "Credentials found! Redirecting...";
